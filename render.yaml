@@ -24,3 +24,10 @@ services:
         value: "6"
       - key: MOCK
         value: "0"
+      # Spend guards. Live scans stay OFF on Render until you set DEMO_ACCESS_CODE in the dashboard.
+      - key: DEMO_ACCESS_CODE
+        sync: false
+      - key: MAX_ROWS
+        value: "30"
+      - key: DAILY_SCAN_LIMIT
+        value: "20"

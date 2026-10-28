@@ -13,8 +13,29 @@ const FIT = { "Drop-in": "fit-drop", "Pin-compatible": "fit-pin", Functional: "f
 const COLOR = { crit: "var(--crit)", watch: "var(--watch)", ok: "var(--ok)", unk: "var(--unk)" };
 
 // ---------- config / header ----------
-fetch("/api/config").then((r) => r.json()).then((c) => {
-  $("#demo-banner").hidden = !c.mock;
+function loadConfig() {
+  return fetch("/api/config").then((r) => r.json()).then((c) => {
+    $("#demo-banner").hidden = !c.mock;
+    renderLive(c.live);
+    return c;
+  });
+}
+
+// Spend guards on the public demo: access code, row cap, daily scan limit (enforced on the server).
+function renderLive(live) {
+  state.live = live;
+  if (!live) return;
+  $("#live-gate").hidden = !(live.enabled && live.code_required);
+  $("#run-sample").disabled = !live.enabled || live.scans_left <= 0;
+  const meta = !live.enabled
+    ? "Live scans are off on this demo. The report below is a saved result of a real run."
+    : live.scans_left <= 0
+      ? `Today's ${live.daily_limit} live scans are used up. Try again tomorrow (UTC).`
+      : `Live scans: up to ${live.max_rows} rows per BOM · ${live.scans_left} of ${live.daily_limit} left today.`;
+  $("#live-meta").textContent = meta;
+}
+
+loadConfig().then((c) => {
   const short = (m) => m.split("/").pop();
   const keys = c.mock ? [] : [
     `<span class="key ${c.keys.nebius ? "on" : "off"}">Token Factory</span>`,
@@ -31,12 +52,12 @@ const drop = $("#drop");
 drop.addEventListener("drop", (ev) => { const f = ev.dataTransfer.files[0]; if (f) start({ file: f }); });
 $("#file").addEventListener("change", (ev) => { const f = ev.target.files[0]; if (f) start({ file: f }); });
 $("#run-sample").addEventListener("click", () => start({ sample: true }));
-$("#show-example").addEventListener("click", showExample);
-// A shareable link straight to the example report: /?example
-if (new URLSearchParams(location.search).has("example")) showExample();
+$("#show-example").addEventListener("click", () => showExample({ scroll: true }));
+// The home page always shows the saved report (no API calls). /?example also scrolls straight to it.
+showExample({ scroll: new URLSearchParams(location.search).has("example") });
 
 // A saved live run, rendered through the same code a live scan uses, so judges see a full report instantly.
-async function showExample() {
+async function showExample({ scroll = false } = {}) {
   showError("");
   if (state.es) state.es.close();
   let ex;
@@ -62,14 +83,14 @@ async function showExample() {
   $("#stat-fast").innerHTML = `${ex.parts.length} rows · ${fmt(ex.usage.tiers.fast.tokens)} tok`;
   $("#file-name").textContent += ` · checked in ${ex.seconds}s`;
   const note = $("#example-note");
-  note.textContent = `Saved result of a live run on ${ex.generated_at}. Click "Check the sample" above to run it live now.`;
+  note.textContent = `Example: saved result of a real live run on ${ex.generated_at}. Showing it makes no API calls.`;
   note.hidden = false;
   sortRows();
   $("#exports").hidden = false;
   $("#dl-md").href = `/api/report/${ex.session}.md`;
   $("#dl-csv").href = `/api/report/${ex.session}.csv`;
   $("#results").hidden = false;
-  $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (scroll) $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function showError(msg) {
@@ -80,6 +101,13 @@ function showError(msg) {
 
 async function start({ file, sample }) {
   showError("");
+  const live = state.live;
+  if (live && !live.enabled) { showError("Live scans are off on this demo. The report below is a saved real run."); return; }
+  if (live && live.code_required && !$("#access-code").value.trim()) {
+    showError("Enter the access code to run a live scan.");
+    $("#access-code").focus();
+    return;
+  }
   $("#example-note").hidden = true;
   if (state.es) state.es.close();
   const btn = $("#run-sample");
@@ -90,6 +118,7 @@ async function start({ file, sample }) {
   const fd = new FormData();
   if (sample) fd.append("use_sample", "true");
   if (file) fd.append("file", file);
+  fd.append("access_code", $("#access-code").value);
 
   let data;
   try {
@@ -97,11 +126,15 @@ async function start({ file, sample }) {
     data = await r.json();
     if (!r.ok) throw new Error(data.detail || "Upload failed.");
   } catch (e) {
-    showError(e.message);
     setChip("fast", "");
     btn.disabled = false;
+    loadConfig();
+    // A refused scan leaves the example report on screen as it was.
+    if (state.session === "example") await showExample();
+    showError(e.message);
     return;
   }
+  loadConfig();  // refresh "scans left today"
   setChip("fast", "used");
   $("#stat-fast").innerHTML = `${data.parts.length} rows · ${fmt(data.usage.fast.tokens)} tok`;
   $("#t1").classList.add("done");
@@ -110,6 +143,7 @@ async function start({ file, sample }) {
   state.parts = new Map(data.parts.map((p) => [p.row, p]));
   state.results = new Map();
   renderSkeleton(data);
+  if (data.truncated) $("#file-name").textContent += ` · only the first ${data.parts.length} rows are checked on this demo`;
   $("#results").hidden = false;
   $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
   analyze();
@@ -157,11 +191,11 @@ function analyze() {
     $("#exports").hidden = false;
     $("#dl-md").href = `/api/report/${state.session}.md`;
     $("#dl-csv").href = `/api/report/${state.session}.csv`;
-    $("#run-sample").disabled = false;
+    loadConfig();
   });
   es.addEventListener("error", (e) => {
     if (e.data) showError(JSON.parse(e.data).message);
-    if (es.readyState === EventSource.CLOSED || e.data) { es.close(); $("#run-sample").disabled = false; }
+    if (es.readyState === EventSource.CLOSED || e.data) { es.close(); loadConfig(); }
   });
 }
 

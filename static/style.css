@@ -90,6 +90,12 @@ main { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
 .intake-alt { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .sample-link { font-size: 14px; color: var(--silk-2); }
 .intake-error { margin: 0; color: var(--crit); font-weight: 600; }
+.live-gate { display: flex; flex-direction: column; gap: 6px; max-width: 360px; }
+.live-gate label { font-size: 13px; color: var(--silk-2); }
+.live-gate input { font: 500 15px var(--mono); color: var(--silk); background: #0a2219; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.live-gate input:focus { outline: 2px solid var(--copper); outline-offset: 1px; }
+.live-meta { margin: 0; font-size: 13px; color: var(--silk-3); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;

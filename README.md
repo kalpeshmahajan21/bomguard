@@ -12,7 +12,7 @@ Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track), 
 
 ![BOMGuard home page](docs/home.png)
 
-> The live demo runs on a free instance that sleeps when idle, so the first visit can take about 50 seconds to wake up. The example report is a saved live run and loads in about a second; a full live scan of the sample BOM takes 30–60 seconds.
+> The home page opens on a saved report from a real live run, so judges see the full result instantly and it costs nothing to show. Live scans on the public demo need an access code (ask me, or run it yourself with your own keys, below) and are capped at 30 rows per BOM and 20 scans a day. The free instance sleeps when idle, so the first visit can take about 50 seconds to wake up; a live scan of the sample BOM takes 30–60 seconds.
 
 ## The problem
 
@@ -96,13 +96,25 @@ Any CSV with a header row and a part-number column. Recognized headers include `
 
 ### Deploy
 
-`render.yaml` deploys to [Render](https://render.com) as a Docker web service: create a Blueprint from this repo and paste your two API keys. Or with Docker anywhere:
+`render.yaml` deploys to [Render](https://render.com) as a Docker web service: create a Blueprint from this repo and paste your two API keys.
+
+Spend guards for a public deploy, all checked on the server before any paid call:
+
+| Setting | Default | Effect |
+|---|---|---|
+| `DEMO_ACCESS_CODE` | empty | When set, live scans need this code. On Render, live scans stay **off** until it is set, so a forgotten setting can't burn credits. |
+| `MAX_ROWS` | 30 | Rows checked per BOM; extra rows are skipped and the UI says so. |
+| `DAILY_SCAN_LIMIT` | 20 | Live scans per UTC day. Each upload can be analyzed once. |
+
+The saved example report (`/api/example`) never calls a model or search API.
+
+Or with Docker anywhere:
 
 ```bash
 docker build -t bomguard . && docker run -p 8000:8000 --env-file .env bomguard
 ```
 
-Sessions are kept in memory, so run a single instance.
+Sessions and the daily scan counter are kept in memory, so run a single instance (a restart resets the counter).
 
 ## Limitations
 

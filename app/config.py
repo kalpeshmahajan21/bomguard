@@ -23,7 +23,13 @@ MODEL_REASON = _env("MODEL_REASON", "nvidia/Nemotron-3-Ultra-550b-a55b")
 TAVILY_API_KEY = _env("TAVILY_API_KEY", "")
 CONCURRENCY = int(_env("CONCURRENCY", "6"))
 MOCK = _env("MOCK", "0") == "1"
-MAX_ROWS = int(_env("MAX_ROWS", "150"))
+MAX_ROWS = int(_env("MAX_ROWS", "30"))
+
+# Spend guards for the public demo. A live scan needs DEMO_ACCESS_CODE when it is set. On Render (which sets
+# RENDER) live scans are off entirely unless a code is set, so a forgotten env var can't burn credits.
+DEMO_ACCESS_CODE = _env("DEMO_ACCESS_CODE", "")
+ON_RENDER = bool(_env("RENDER", ""))
+DAILY_SCAN_LIMIT = int(_env("DAILY_SCAN_LIMIT", "20"))
 CACHE_DIR = _env("CACHE_DIR", ".cache")
 
 # A part at or above this risk score gets an alternatives search + Ultra validation.

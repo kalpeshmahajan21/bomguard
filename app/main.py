@@ -1,6 +1,8 @@
 """BOMGuard API: upload a BOM, stream per-part risk analysis over Server-Sent Events."""
 import asyncio
 import csv
+import datetime
+import hmac
 import io
 import json
 import os
@@ -19,6 +21,40 @@ EXAMPLE = os.path.join(ROOT, "samples", "example_report.json")
 
 app = FastAPI(title="BOMGuard")
 SESSIONS: dict[str, dict] = {}
+# Live scans accepted today (UTC). In memory: resets if the instance restarts.
+SCANS = {"day": "", "count": 0}
+
+
+def _live_status() -> dict:
+    today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+    if SCANS["day"] != today:
+        SCANS.update(day=today, count=0)
+    need_code = bool(config.DEMO_ACCESS_CODE) or config.ON_RENDER
+    return {
+        "enabled": not (need_code and not config.DEMO_ACCESS_CODE),
+        "code_required": need_code,
+        "max_rows": config.MAX_ROWS,
+        "daily_limit": config.DAILY_SCAN_LIMIT,
+        "scans_left": max(0, config.DAILY_SCAN_LIMIT - SCANS["count"]),
+    }
+
+
+async def _check_access(code: str) -> None:
+    """Refuse a live scan before any paid call: wrong/missing access code, or live scans off."""
+    st = _live_status()
+    if not st["enabled"]:
+        raise HTTPException(403, "Live scans are turned off on this demo. The example report shows a real run.")
+    if st["code_required"] and not hmac.compare_digest(code.strip().encode(), config.DEMO_ACCESS_CODE.encode()):
+        await asyncio.sleep(1)  # slows down guessing
+        raise HTTPException(403, "Live scans need an access code. The example report shows a real run.")
+
+
+def _count_scan() -> None:
+    """Use one of today's live scans, or refuse if they are used up."""
+    if _live_status()["scans_left"] <= 0:
+        raise HTTPException(429, f"Today's {config.DAILY_SCAN_LIMIT} live scans are used up. "
+                                 "The example report shows a real run; try again tomorrow (UTC).")
+    SCANS["count"] += 1
 
 
 @app.get("/")
@@ -32,6 +68,7 @@ def get_config():
         "mock": config.MOCK,
         "models": {"fast": config.MODEL_FAST, "extract": config.MODEL_EXTRACT, "reason": config.MODEL_REASON},
         "keys": {"nebius": bool(config.NEBIUS_API_KEY), "tavily": bool(config.TAVILY_API_KEY)},
+        "live": _live_status(),
     }
 
 
@@ -51,7 +88,9 @@ def example():
 
 
 @app.post("/api/bom")
-async def upload_bom(file: UploadFile | None = File(None), text: str = Form(""), use_sample: bool = Form(False)):
+async def upload_bom(file: UploadFile | None = File(None), text: str = Form(""), use_sample: bool = Form(False),
+                     access_code: str = Form("")):
+    await _check_access(access_code)
     if use_sample:
         with open(SAMPLE) as f:
             raw, name = f.read(), "flight_controller_bom.csv"
@@ -69,6 +108,7 @@ async def upload_bom(file: UploadFile | None = File(None), text: str = Form(""),
     if not any(p["mpn"] for p in parts):
         raise HTTPException(400, "Couldn't find a part-number column. Name it 'MPN' or 'Manufacturer Part Number'.")
 
+    _count_scan()  # after free validation, before the first model call
     usage, stats = llm.Usage(), research.TavilyStats()
     if config.MOCK:
         await asyncio.sleep(0.6)
@@ -91,6 +131,9 @@ async def analyze(sid: str):
     s = SESSIONS.get(sid)
     if not s or "usage" not in s:
         raise HTTPException(404, "Session expired. Upload the BOM again.")
+    if s.get("started"):  # one analysis per accepted scan, so the daily limit can't be bypassed
+        raise HTTPException(409, "This BOM was already analyzed. Upload it again to run a new scan.")
+    s["started"] = True
     impl = mock if config.MOCK else agent
     q: asyncio.Queue = asyncio.Queue()
     usage, stats = s["usage"], s["stats"]

@@ -36,11 +36,16 @@
         <span class="drop-sub">KiCad, Altium, Eagle or your own spreadsheet. Needs a part-number column.</span>
         <span class="drop-btn">Choose file</span>
       </label>
+      <div class="live-gate" id="live-gate" hidden>
+        <label for="access-code">Access code for live scans</label>
+        <input id="access-code" type="password" autocomplete="off" spellcheck="false" placeholder="Needed to run a live scan">
+      </div>
       <div class="intake-alt">
         <button type="button" class="btn btn-copper" id="run-sample">Check the sample drone flight-controller BOM</button>
-        <button type="button" class="btn btn-ghost" id="show-example">See an example report (instant)</button>
+        <button type="button" class="btn btn-ghost" id="show-example">Show the example report</button>
         <a class="sample-link" href="/api/sample.csv" download>Download sample CSV</a>
       </div>
+      <p class="live-meta" id="live-meta"></p>
       <p class="intake-error" id="intake-error" role="alert" hidden></p>
     </form>
   </section>
