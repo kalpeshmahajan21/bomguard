@@ -65,6 +65,32 @@ _LEGEND = re.compile(
     r"product is|device recommended|the device)", re.I)
 
 
+# Map a verified lifecycle quote to the status it states. Order matters: "not recommended" before "active", etc.
+_QUOTE_STATUS = [
+    ("NRND", re.compile(r"not recommended|\bnrnd\b", re.I)),
+    ("Last Time Buy", re.compile(r"last[- ]time[- ]buy|\blifebuy\b|\bltb\b|last buy", re.I)),
+    ("EOL", re.compile(r"end[- ]of[- ]life|\beol\b", re.I)),
+    ("Obsolete", re.compile(r"obsolete|discontinued", re.I)),
+    ("Active", re.compile(r"\bactive\b|in production|\bproduction\b", re.I)),
+]
+
+
+def quote_status(quote: str) -> str | None:
+    for status, rx in _QUOTE_STATUS:
+        if rx.search(quote or ""):
+            return status
+    return None
+
+
+def reconcile_lifecycle(verdict: str, claims: list[dict]) -> str:
+    """The model's lifecycle verdict must agree with what its own verified quotes say.
+    If it doesn't, the quotes win; if the quotes disagree with each other, the answer is Unknown."""
+    stated = {quote_status(c.get("quote", "")) for c in claims if c.get("field") == "lifecycle"} - {None}
+    if not stated or verdict in stated:
+        return verdict
+    return stated.pop() if len(stated) == 1 else "Unknown"
+
+
 def verify_claims(items: list[dict], sources: list[dict], fam: str) -> list[dict]:
     """Keep a claim only if: it cites a real retrieved source, that source mentions THIS part family,
     and the quoted text actually appears in the source. Everything else is dropped."""
@@ -184,12 +210,20 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
         if facts[k] != "Unknown" and k not in verified:
             dropped.append(k)
             facts[k] = "Unknown"
+    overridden = False
+    if facts["lifecycle"] != "Unknown":
+        fixed = reconcile_lifecycle(facts["lifecycle"], claims)
+        overridden = fixed != facts["lifecycle"]
+        facts["lifecycle"] = fixed
     successor = facts.get("successor")
     if successor and ("successor" not in verified or same_part(successor, mpn)):
         successor = None
     summary = facts.get("summary", "")
     if "lifecycle" in dropped or (facts["lifecycle"] == "Unknown" and not summary):
         summary = "No page confirmed this exact part's lifecycle status. Check the manufacturer's product page before ordering."
+    elif overridden:
+        summary = (f"Verified sources state: {facts['lifecycle']}." if facts["lifecycle"] != "Unknown"
+                   else "Sources disagree on this part's lifecycle status. Check the manufacturer's product page before ordering.")
     confidence = facts.get("confidence", "low") if "lifecycle" in verified else "low"
     result.update(
         lifecycle=facts["lifecycle"], availability=facts["availability"], rohs=facts["rohs"],
