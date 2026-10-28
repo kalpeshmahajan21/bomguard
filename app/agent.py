@@ -82,13 +82,52 @@ def quote_status(quote: str) -> str | None:
     return None
 
 
-def reconcile_lifecycle(verdict: str, claims: list[dict]) -> str:
-    """The model's lifecycle verdict must agree with what its own verified quotes say.
-    If it doesn't, the quotes win; if the quotes disagree with each other, the answer is Unknown."""
+# Manufacturer names that don't match their web domain.
+_MFR_DOMAINS = {"texas": "ti", "ti": "ti", "silicon": "silabs", "silabs": "silabs", "maxim": "analog",
+                "adi": "analog", "analog": "analog", "stmicroelectronics": "st", "st": "st", "on": "onsemi",
+                "bosch": "bosch-sensortec", "tdk": "tdk", "invensense": "tdk"}
+
+
+def _host_labels(url: str) -> list[str]:
+    host = re.sub(r"^https?://", "", url or "").split("/")[0].lower()
+    return host.split(".")
+
+
+def source_tier(url: str, manufacturer: str) -> int:
+    """3 = the manufacturer's own site, 2 = a distributor, 1 = anything else (blogs, forums, datasheet mirrors)."""
+    labels = _host_labels(url)
+    words = re.findall(r"[a-z0-9]+", (manufacturer or "").lower())
+    keys = {_MFR_DOMAINS.get(w, w) for w in words[:1]} | {_MFR_DOMAINS[w] for w in words if w in _MFR_DOMAINS}
+    if any(k and k in labels for k in keys):
+        return 3
+    if any(d.split(".")[0] in labels for d in research.DISTRIBUTORS):
+        return 2
+    return 1
+
+
+def lifecycle_conflict(status: str, claims: list[dict]) -> bool:
+    """True if verified quotes disagree on whether the part is Active at all (Obsolete vs EOL is not a conflict)."""
     stated = {quote_status(c.get("quote", "")) for c in claims if c.get("field") == "lifecycle"} - {None}
-    if not stated or verdict in stated:
+    return any((s == "Active") != (status == "Active") for s in stated)
+
+
+def reconcile_lifecycle(verdict: str, claims: list[dict], manufacturer: str = "") -> str:
+    """The lifecycle verdict must agree with the verified quotes, and better sources outrank worse ones:
+    the manufacturer beats distributors (whose status fields lag), distributors beat blogs.
+    The best tier that states a status decides; if that tier disagrees with itself, the answer is Unknown."""
+    by_tier: dict[int, set] = {}
+    for c in claims:
+        if c.get("field") != "lifecycle":
+            continue
+        s = quote_status(c.get("quote", ""))
+        if s:
+            by_tier.setdefault(source_tier(c.get("url", ""), manufacturer), set()).add(s)
+    if not by_tier:
         return verdict
-    return stated.pop() if len(stated) == 1 else "Unknown"
+    stated = by_tier[max(by_tier)]
+    if len(stated) == 1:
+        return next(iter(stated))
+    return verdict if verdict in stated else "Unknown"
 
 
 def verify_claims(items: list[dict], sources: list[dict], fam: str) -> list[dict]:
@@ -127,6 +166,7 @@ ATmega328 is not ATmega328P, BMP280 is not BMP180, CP2102N is not CP2102.
 Datasheet legends that DEFINE status codes (e.g. "NRND: Not recommended for new designs. Device is in production...")
 are definitions, not this part's status: in a TI orderable table, the status is the word in this part's own row.
 Distributor "Product status" fields are strong evidence. Manufacturer EOL/PCN notices are the strongest.
+If the manufacturer's own product page is among the sources and shows a status, quote it (distributor fields can lag).
 If nothing on the pages states it for this part, answer "Unknown". Unknown is a good answer; guessing is a bad one.
 lifecycle is one of {LIFECYCLES}. NRND = not recommended for new designs. "Discontinued" = Obsolete.
 availability is one of ["In stock","Limited","Out of stock","Unknown"].
@@ -212,7 +252,7 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
             facts[k] = "Unknown"
     overridden = False
     if facts["lifecycle"] != "Unknown":
-        fixed = reconcile_lifecycle(facts["lifecycle"], claims)
+        fixed = reconcile_lifecycle(facts["lifecycle"], claims, mfr)
         overridden = fixed != facts["lifecycle"]
         facts["lifecycle"] = fixed
     successor = facts.get("successor")
@@ -225,6 +265,9 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
         summary = (f"Verified sources state: {facts['lifecycle']}." if facts["lifecycle"] != "Unknown"
                    else "Sources disagree on this part's lifecycle status. Check the manufacturer's product page before ordering.")
     confidence = facts.get("confidence", "low") if "lifecycle" in verified else "low"
+    if facts["lifecycle"] != "Unknown" and lifecycle_conflict(facts["lifecycle"], claims):
+        confidence = "low"
+        summary = (summary + " Some sources disagree; confirm on the manufacturer's product page.").strip()
     result.update(
         lifecycle=facts["lifecycle"], availability=facts["availability"], rohs=facts["rohs"],
         confidence=confidence, summary=summary, claims=claims, successor=successor,
