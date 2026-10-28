@@ -67,10 +67,10 @@ _LEGEND = re.compile(
 
 # Map a verified lifecycle quote to the status it states. Order matters: "not recommended" before "active", etc.
 _QUOTE_STATUS = [
-    ("NRND", re.compile(r"not recommended|\bnrnd\b", re.I)),
+    ("NRND", re.compile(r"not recommended|not for new design|\bnrnd\b", re.I)),
     ("Last Time Buy", re.compile(r"last[- ]time[- ]buy|\blifebuy\b|\bltb\b|last buy", re.I)),
     ("EOL", re.compile(r"end[- ]of[- ]life|\beol\b", re.I)),
-    ("Obsolete", re.compile(r"obsolete|discontinued", re.I)),
+    ("Obsolete", re.compile(r"obsolete|discontinued|out of production|no longer (manufactured|produced|in production)", re.I)),
     ("Active", re.compile(r"\bactive\b|in production|\bproduction\b", re.I)),
 ]
 
@@ -105,6 +105,23 @@ def source_tier(url: str, manufacturer: str) -> int:
     return 1
 
 
+# An explicit status field inside a quote, e.g. "Part Status. Active" or "Manufacturer Lifecycle StatusFULL PRODUCTION".
+_STATUS_FIELD = re.compile(r"(?:part|product|lifecycle|life cycle)\s*status\W{0,4}\s*[A-Za-z][A-Za-z\- ]{1,40}", re.I)
+
+
+def status_field_claims(claims: list[dict]) -> list[dict]:
+    """A verified quote filed under another field (e.g. rohs) may still contain the part's status field.
+    Re-file that exact snippet as lifecycle evidence; it is a substring of a verified quote, so still on the page."""
+    out = []
+    for c in claims:
+        if c.get("field") == "lifecycle":
+            continue
+        m = _STATUS_FIELD.search(c.get("quote", ""))
+        if m and quote_status(m.group(0)):
+            out.append(dict(c, field="lifecycle", quote=m.group(0).strip()))
+    return out
+
+
 def lifecycle_conflict(status: str, claims: list[dict]) -> bool:
     """True if verified quotes disagree on whether the part is Active at all (Obsolete vs EOL is not a conflict)."""
     stated = {quote_status(c.get("quote", "")) for c in claims if c.get("field") == "lifecycle"} - {None}
@@ -112,9 +129,9 @@ def lifecycle_conflict(status: str, claims: list[dict]) -> bool:
 
 
 def reconcile_lifecycle(verdict: str, claims: list[dict], manufacturer: str = "") -> str:
-    """The lifecycle verdict must agree with the verified quotes, and better sources outrank worse ones:
-    the manufacturer beats distributors (whose status fields lag), distributors beat blogs.
-    The best tier that states a status decides; if that tier disagrees with itself, the answer is Unknown."""
+    """The lifecycle verdict must agree with the verified quotes. A quote from the manufacturer's own site decides.
+    Without one, if any sources disagree on Active vs at-risk (distributor fields lag), the answer is Unknown.
+    Otherwise the best tier that states a status decides; if that tier disagrees with itself, the answer is Unknown."""
     by_tier: dict[int, set] = {}
     for c in claims:
         if c.get("field") != "lifecycle":
@@ -124,6 +141,9 @@ def reconcile_lifecycle(verdict: str, claims: list[dict], manufacturer: str = ""
             by_tier.setdefault(source_tier(c.get("url", ""), manufacturer), set()).add(s)
     if not by_tier:
         return verdict
+    everything = set().union(*by_tier.values())
+    if max(by_tier) < 3 and "Active" in everything and len(everything) > 1:
+        return "Unknown"
     stated = by_tier[max(by_tier)]
     if len(stated) == 1:
         return next(iter(stated))
@@ -244,6 +264,7 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
             facts[k] = "Unknown"
     fam = research.family(mpn)
     claims = verify_claims(facts.get("claims"), sources, fam)
+    claims += status_field_claims(claims)
     verified = {c.get("field") for c in claims}
     dropped = []
     for k in ("lifecycle", "availability", "rohs"):
@@ -251,9 +272,12 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
             dropped.append(k)
             facts[k] = "Unknown"
     overridden = False
-    if facts["lifecycle"] != "Unknown":
+    if "lifecycle" in verified:
         fixed = reconcile_lifecycle(facts["lifecycle"], claims, mfr)
-        overridden = fixed != facts["lifecycle"]
+        # Only rewrite the model's summary when the meaning changed (Active vs at-risk, or now Unknown);
+        # EOL -> Obsolete keeps the model's more useful wording.
+        before = facts["lifecycle"]
+        overridden = fixed != before and ("Unknown" in (fixed, before) or (fixed == "Active") != (before == "Active"))
         facts["lifecycle"] = fixed
     successor = facts.get("successor")
     if successor and ("successor" not in verified or same_part(successor, mpn)):
@@ -265,7 +289,9 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
         summary = (f"Verified sources state: {facts['lifecycle']}." if facts["lifecycle"] != "Unknown"
                    else "Sources disagree on this part's lifecycle status. Check the manufacturer's product page before ordering.")
     confidence = facts.get("confidence", "low") if "lifecycle" in verified else "low"
-    if facts["lifecycle"] != "Unknown" and lifecycle_conflict(facts["lifecycle"], claims):
+    if facts["lifecycle"] == "Unknown":
+        confidence = "low"
+    elif lifecycle_conflict(facts["lifecycle"], claims):
         confidence = "low"
         summary = (summary + " Some sources disagree; confirm on the manufacturer's product page.").strip()
     result.update(
