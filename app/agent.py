@@ -63,6 +63,12 @@ _LEGEND = re.compile(
     r"^\W*(active|nrnd|obsolete|lifebuy|ltb|preview|eol)\s*[:=-]\s*"
     r"(product device|not recommended|ti has|device has been|device is in production|the manufacturer has|"
     r"product is|device recommended|the device)", re.I)
+# The same legend definitions quoted without their "LIFEBUY:"/"NRND:" label (TI's standard wording).
+_LEGEND_SENTENCE = re.compile(
+    r"TI has announced that the device will be discontinued|lifetime-buy period is in effect|"
+    r"device is in production to support existing customers|TI has discontinued the production of the device|"
+    r"device has been announced but is not in production|product device recommended for new designs|"
+    r"\b(nrnd|lifebuy|obsolete|active|preview)\s*:\s*(not recommended for new designs|TI has|product device)", re.I)
 
 
 # Map a verified lifecycle quote to the status it states. Order matters: "not recommended" before "active", etc.
@@ -117,7 +123,7 @@ def status_field_claims(claims: list[dict]) -> list[dict]:
         if c.get("field") == "lifecycle":
             continue
         m = _STATUS_FIELD.search(c.get("quote", ""))
-        if m and quote_status(m.group(0)):
+        if m and quote_status(m.group(0)) and not _LEGEND_SENTENCE.search(c.get("quote", "")):
             out.append(dict(c, field="lifecycle", quote=m.group(0).strip()))
     return out
 
@@ -161,7 +167,7 @@ def verify_claims(items: list[dict], sources: list[dict], fam: str) -> list[dict
         src = sources[idx]
         if not _mentions(src, fam) or not _quote_ok(it.get("quote", ""), src):
             continue
-        if it.get("field") == "lifecycle" and _LEGEND.search(it.get("quote", "")):
+        if it.get("field") == "lifecycle" and (_LEGEND.search(it.get("quote", "")) or _LEGEND_SENTENCE.search(it.get("quote", ""))):
             continue
         it = dict(it, url=src["url"], source_title=src["title"])
         out.append(it)
