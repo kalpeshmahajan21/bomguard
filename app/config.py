@@ -30,6 +30,10 @@ MAX_ROWS = int(_env("MAX_ROWS", "30"))
 DEMO_ACCESS_CODE = _env("DEMO_ACCESS_CODE", "")
 ON_RENDER = bool(_env("RENDER", ""))
 DAILY_SCAN_LIMIT = int(_env("DAILY_SCAN_LIMIT", "20"))
+
+# MOCK only: fake a Token Factory 402 to test the "live scans paused" path. "upload" fails while cleaning
+# the BOM, "scan" fails on the first part. Ignored when MOCK is off.
+SIMULATE_402 = _env("SIMULATE_402", "") if MOCK else ""
 CACHE_DIR = _env("CACHE_DIR", ".cache")
 
 # A part at or above this risk score gets an alternatives search + Ultra validation.

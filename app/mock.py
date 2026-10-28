@@ -2,7 +2,7 @@
 Real runs always go through Nemotron on Token Factory + Tavily. The UI shows a DEMO DATA banner in this mode."""
 import asyncio
 import random
-from . import agent, llm, research
+from . import agent, config, llm, research
 
 CATEGORIES = {
     "ATMEGA328P-AU": "MCU", "MPU-6050": "IMU", "HMC5883L": "Magnetometer", "BMP180": "Barometer",
@@ -60,6 +60,8 @@ DOMAINS = {
 
 
 def normalize(parts: list[dict]) -> list[dict]:
+    if config.SIMULATE_402 == "upload":
+        raise llm.BillingPaused("Error code: 402 - Payment Required: You have exhausted your budget. (simulated)")
     for p in parts:
         p["manufacturer"] = CANON.get(p["manufacturer"], p["manufacturer"])
         p["category"] = CATEGORIES.get(p["mpn"], "Passive" if not p["mpn"] else "Component")
@@ -68,6 +70,9 @@ def normalize(parts: list[dict]) -> list[dict]:
 
 
 async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats, emit) -> dict:
+    if config.SIMULATE_402 == "scan" and part.get("mpn"):
+        await asyncio.sleep(0.3)
+        raise llm.BillingPaused("Error code: 402 - Payment Required: You have exhausted your budget. (simulated)")
     if part.get("is_generic") or not part["mpn"]:
         return await agent.analyze_part(part, usage, stats, emit)
     mpn, mfr = part["mpn"], part["manufacturer"]

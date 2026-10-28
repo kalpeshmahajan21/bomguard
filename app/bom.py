@@ -94,6 +94,8 @@ async def normalize(parts: list[dict], usage: llm.Usage) -> list[dict]:
                     p["manufacturer"] = r["manufacturer"].strip()
                 p["category"] = (r.get("category") or "").strip()
                 p["is_generic"] = bool(r.get("is_generic"))
+        except llm.BillingPaused:
+            raise
         except Exception as e:  # never block the run on normalization
             for p in batch:
                 p.setdefault("normalize_error", str(e)[:200])

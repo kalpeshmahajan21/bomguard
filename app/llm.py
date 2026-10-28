@@ -62,7 +62,25 @@ MODEL_FOR = {"fast": lambda: config.MODEL_FAST, "extract": lambda: config.MODEL_
 _NO_THINK_OK = {"fast": True, "extract": True}  # flipped to False if the endpoint rejects the flag
 
 
+class BillingPaused(Exception):
+    """Token Factory refused the call for billing reasons (HTTP 402 / budget exhausted). Stops the whole scan."""
+
+
+def is_billing_error(e: Exception) -> bool:
+    msg = str(e).lower()
+    return getattr(e, "status_code", None) == 402 or "exhausted your budget" in msg or "payment required" in msg
+
+
 async def _create(model: str, tier: str, messages: list, max_tokens: int):
+    try:
+        return await _create_inner(model, tier, messages, max_tokens)
+    except Exception as e:
+        if is_billing_error(e):
+            raise BillingPaused(str(e)[:200]) from e
+        raise
+
+
+async def _create_inner(model: str, tier: str, messages: list, max_tokens: int):
     """Nano and Super do extraction work, not deep reasoning: turn thinking off so the whole
     token budget goes to the JSON answer (faster, cheaper, no empty replies). Ultra keeps thinking."""
     if _NO_THINK_OK.get(tier):

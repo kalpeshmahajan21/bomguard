@@ -21,14 +21,26 @@ function loadConfig() {
   });
 }
 
+const PAUSED_MSG = "Live scans are paused right now — here is a real report from an earlier live run.";
+
+// Token Factory refused a call for billing reasons: no raw error, just the saved real report.
+async function showPaused() {
+  if (state.es) state.es.close();
+  await showExample({ scroll: true });
+  $("#example-note").textContent = PAUSED_MSG;
+  loadConfig();
+}
+
 // Spend guards on the public demo: access code, row cap, daily scan limit (enforced on the server).
 function renderLive(live) {
   state.live = live;
   if (!live) return;
   $("#live-gate").hidden = !(live.enabled && live.code_required);
-  $("#run-sample").disabled = !live.enabled || live.scans_left <= 0;
+  $("#run-sample").disabled = !live.enabled || live.scans_left <= 0 || live.paused;
   const meta = !live.enabled
     ? "Live scans are off on this demo. The report below is a saved result of a real run."
+    : live.paused
+      ? "Live scans are paused right now."
     : live.scans_left <= 0
       ? `Today's ${live.daily_limit} live scans are used up. Try again tomorrow (UTC).`
       : `Live scans: up to ${live.max_rows} rows per BOM · ${live.scans_left} of ${live.daily_limit} left today.`;
@@ -124,6 +136,7 @@ async function start({ file, sample }) {
   try {
     const r = await fetch("/api/bom", { method: "POST", body: fd });
     data = await r.json();
+    if (r.status === 503) { setChip("fast", ""); await showPaused(); return; }
     if (!r.ok) throw new Error(data.detail || "Upload failed.");
   } catch (e) {
     setChip("fast", "");
@@ -178,6 +191,7 @@ function analyze() {
     renderCounts();
   });
 
+  es.addEventListener("paused", () => showPaused());
   es.addEventListener("usage", (e) => renderUsage(JSON.parse(e.data)));
   es.addEventListener("brief", (e) => renderBrief(JSON.parse(e.data)));
   es.addEventListener("done", (e) => {

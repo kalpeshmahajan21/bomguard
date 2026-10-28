@@ -23,6 +23,19 @@ app = FastAPI(title="BOMGuard")
 SESSIONS: dict[str, dict] = {}
 # Live scans accepted today (UTC). In memory: resets if the instance restarts.
 SCANS = {"day": "", "count": 0}
+# After a billing refusal (402) from Token Factory, live scans pause so no further calls are attempted.
+PAUSE = {"until": 0.0}
+PAUSE_SECONDS = 15 * 60
+PAUSED_MSG = "Live scans are paused right now — here is a real report from an earlier live run."
+
+
+def _paused() -> bool:
+    return time.time() < PAUSE["until"]
+
+
+def _pause_live() -> None:
+    PAUSE["until"] = time.time() + PAUSE_SECONDS
+    SCANS["count"] = max(0, SCANS["count"] - 1)  # a refused scan doesn't use up today's allowance
 
 
 def _live_status() -> dict:
@@ -36,6 +49,7 @@ def _live_status() -> dict:
         "max_rows": config.MAX_ROWS,
         "daily_limit": config.DAILY_SCAN_LIMIT,
         "scans_left": max(0, config.DAILY_SCAN_LIMIT - SCANS["count"]),
+        "paused": _paused(),
     }
 
 
@@ -47,6 +61,8 @@ async def _check_access(code: str) -> None:
     if st["code_required"] and not hmac.compare_digest(code.strip().encode(), config.DEMO_ACCESS_CODE.encode()):
         await asyncio.sleep(1)  # slows down guessing
         raise HTTPException(403, "Live scans need an access code. The example report shows a real run.")
+    if st["paused"]:
+        raise HTTPException(503, PAUSED_MSG)
 
 
 def _count_scan() -> None:
@@ -110,12 +126,16 @@ async def upload_bom(file: UploadFile | None = File(None), text: str = Form(""),
 
     _count_scan()  # after free validation, before the first model call
     usage, stats = llm.Usage(), research.TavilyStats()
-    if config.MOCK:
-        await asyncio.sleep(0.6)
-        usage.add("fast", 1800, 0.6)
-        parts = mock.normalize(parts)
-    else:
-        parts = await bom.normalize(parts, usage)
+    try:
+        if config.MOCK:
+            await asyncio.sleep(0.6)
+            usage.add("fast", 1800, 0.6)
+            parts = mock.normalize(parts)
+        else:
+            parts = await bom.normalize(parts, usage)
+    except llm.BillingPaused:
+        _pause_live()
+        raise HTTPException(503, PAUSED_MSG)
 
     sid = uuid.uuid4().hex[:12]
     SESSIONS[sid] = {"name": name, "parts": parts, "results": [], "brief": None, "usage": usage, "stats": stats}
@@ -152,6 +172,8 @@ async def analyze(sid: str):
             async with sem:
                 try:
                     r = await impl.analyze_part(p, usage, stats, emit)
+                except llm.BillingPaused:
+                    raise
                 except Exception as e:
                     r = {**p, "lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
                          "summary": f"Research failed: {type(e).__name__}: {str(e)[:160]}", "risk": 45, "band": "watch",
@@ -161,9 +183,23 @@ async def analyze(sid: str):
                 await emit("usage", snapshot())
 
         s["results"] = []
-        await asyncio.gather(*(one(p) for p in s["parts"]))
-        await emit("stage", {"row": 0, "stage": "brief"})
-        s["brief"] = await impl.brief(s["results"], usage, stats)
+        if _paused():
+            await emit("paused", {"message": PAUSED_MSG})
+            await q.put(None)
+            return
+        tasks = [asyncio.create_task(one(p)) for p in s["parts"]]
+        try:
+            await asyncio.gather(*tasks)
+            await emit("stage", {"row": 0, "stage": "brief"})
+            s["brief"] = await impl.brief(s["results"], usage, stats)
+        except llm.BillingPaused:
+            # Stop every other part at once so no more paid calls are attempted, and tell the page.
+            for t in tasks:
+                t.cancel()
+            _pause_live()
+            await emit("paused", {"message": PAUSED_MSG})
+            await q.put(None)
+            return
         await emit("brief", s["brief"])
         await emit("usage", snapshot())
         await emit("done", {"seconds": round(time.perf_counter() - t0, 1)})

@@ -318,6 +318,8 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
             f"PART: {mfr} {mpn} ({part.get('category') or part.get('description')})\n\nSOURCES:\n{_sources_block(sources)}",
             usage, max_tokens=2500,
         )
+    except llm.BillingPaused:
+        raise
     except Exception as e:
         facts = {"lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
                  "summary": f"Could not extract facts automatically ({_why(e)}). Check sources manually.",
@@ -387,6 +389,8 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
                 and a.get("fit") in ("Drop-in", "Pin-compatible", "Functional")
             ][:3]
             result["recommendation"] = alts.get("recommendation", "")
+        except llm.BillingPaused:
+            raise
         except Exception as e:
             result["recommendation"] = f"Alternative search failed ({_why(e)})."
         result["sources"] = all_sources
@@ -429,6 +433,8 @@ async def brief(results: list[dict], usage: llm.Usage, stats: research.TavilySta
         out.update(headline=b.get("headline", ""), top_risks=b.get("top_risks", [])[:5],
                    next_steps=b.get("next_steps", [])[:5], market_notes=_cite(
                        [{"claim": n.get("note"), "source_index": n.get("source_index")} for n in b.get("market_notes", [])], news))
+    except llm.BillingPaused:
+        raise
     except Exception as e:
         out["headline"] = f"Briefing unavailable ({_why(e)}); see per-part results."
     return out
