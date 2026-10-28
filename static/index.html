@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BOMGuard — find the dead parts in your BOM</title>
+<meta name="description" content="Upload a bill of materials. An agent checks every part against the live web and finds cited replacements for the risky ones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' rx='3' fill='%23123A2E' stroke='%23D38B45' stroke-width='2'/><path d='M11 16l3.5 3.5L21 13' stroke='%23ECF3EE' stroke-width='2.4' fill='none'/></svg>">
+</head>
+<body>
+<div id="demo-banner" class="demo-banner" hidden>Demo data — set MOCK=0 and add API keys for live research.</div>
+
+<header class="top">
+  <a class="brand" href="/" aria-label="BOMGuard home">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="6" y="6" width="20" height="20" rx="3"/><path d="M11 16l3.5 3.5L21 13"/><g class="pins"><path d="M10 2v4M16 2v4M22 2v4M10 26v4M16 26v4M22 26v4"/></g></svg>
+    <span>BOMGuard</span>
+  </a>
+  <nav class="top-meta" id="model-meta" aria-label="Models in use"></nav>
+</header>
+
+<main>
+  <section class="hero" id="hero">
+    <div class="hero-copy">
+      <h1>Find the dead parts in your BOM before your production run does.</h1>
+      <p class="lede">Upload a bill of materials. An agent checks every part against the live web for lifecycle, stock and compliance, then finds replacements for the risky ones. Every claim links to its source.</p>
+    </div>
+
+    <form class="intake" id="intake">
+      <label class="drop" id="drop" for="file">
+        <input type="file" id="file" accept=".csv,.tsv,.txt" hidden>
+        <span class="drop-title">Drop a BOM CSV here</span>
+        <span class="drop-sub">KiCad, Altium, Eagle or your own spreadsheet. Needs a part-number column.</span>
+        <span class="drop-btn">Choose file</span>
+      </label>
+      <div class="intake-alt">
+        <button type="button" class="btn btn-copper" id="run-sample">Check the sample drone flight-controller BOM</button>
+        <a class="sample-link" href="/api/sample.csv" download>Download sample CSV</a>
+      </div>
+      <p class="intake-error" id="intake-error" role="alert" hidden></p>
+    </form>
+  </section>
+
+  <section class="board" aria-label="Agent pipeline">
+    <svg class="traces" id="traces" viewBox="0 0 1000 150" preserveAspectRatio="none" aria-hidden="true">
+      <path class="trace" id="t1" d="M125 78 H 375"/>
+      <path class="trace" id="t2" d="M375 78 H 625"/>
+      <path class="trace" id="t3" d="M625 78 H 875"/>
+      <path class="trace trace-dim" id="t4" d="M375 78 V 8 H 875 V 78"/>
+    </svg>
+    <div class="chips">
+      <div class="chip" id="chip-fast" data-tier="fast">
+        <div class="chip-body"><span class="chip-ref">U1</span><strong>Nemotron Nano</strong><span>Cleans every BOM row</span></div>
+        <div class="chip-stats" id="stat-fast">idle</div>
+      </div>
+      <div class="chip chip-via" id="chip-tavily" data-tier="tavily">
+        <div class="chip-body"><span class="chip-ref">J1</span><strong>Tavily</strong><span>Searches the live web</span></div>
+        <div class="chip-stats" id="stat-tavily">idle</div>
+      </div>
+      <div class="chip" id="chip-extract" data-tier="extract">
+        <div class="chip-body"><span class="chip-ref">U2</span><strong>Nemotron Super</strong><span>Extracts cited facts</span></div>
+        <div class="chip-stats" id="stat-extract">idle</div>
+      </div>
+      <div class="chip" id="chip-reason" data-tier="reason">
+        <div class="chip-body"><span class="chip-ref">U3</span><strong>Nemotron Ultra</strong><span>Validates replacements, writes the brief</span></div>
+        <div class="chip-stats" id="stat-reason">idle</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="results" id="results" hidden>
+    <div class="verdict">
+      <div class="gauge" id="gauge" aria-live="polite">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="g-bg" cx="60" cy="60" r="50"/><circle class="g-fg" id="g-fg" cx="60" cy="60" r="50"/></svg>
+        <div class="gauge-num"><span id="health">–</span><small>BOM health</small></div>
+      </div>
+      <div class="verdict-text">
+        <p class="file-name" id="file-name"></p>
+        <h2 id="headline">Checking parts…</h2>
+        <dl class="counts" id="counts"></dl>
+      </div>
+      <div class="exports" id="exports" hidden>
+        <a class="btn btn-ghost" id="dl-md">Download report (.md)</a>
+        <a class="btn btn-ghost" id="dl-csv">Download table (.csv)</a>
+      </div>
+    </div>
+
+    <div class="brief" id="brief" hidden>
+      <div class="brief-col">
+        <h3>Fix these first</h3>
+        <ol class="risks" id="top-risks"></ol>
+      </div>
+      <div class="brief-col">
+        <h3>Next steps</h3>
+        <ul class="steps" id="next-steps"></ul>
+        <div id="market" hidden><h3>Market signals</h3><ul class="steps" id="market-notes"></ul></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="parts" id="parts">
+        <thead><tr>
+          <th scope="col">Ref</th><th scope="col">Part</th><th scope="col">Lifecycle</th>
+          <th scope="col">Stock</th><th scope="col" class="num">Risk</th><th scope="col">Replacements</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="how" id="how">
+    <h2>How a part gets checked</h2>
+    <ol class="how-steps">
+      <li><strong>Clean</strong><span>Nemotron Nano reads any BOM export, fixes manufacturer names and flags generic passives so no credits are wasted on a 10k resistor.</span></li>
+      <li><strong>Search</strong><span>Tavily searches manufacturer pages, distributors and notices for each part's lifecycle, stock and RoHS status.</span></li>
+      <li><strong>Extract</strong><span>Nemotron Super turns those pages into facts. A claim without a retrieved source is thrown away, and "Unknown" is an allowed answer.</span></li>
+      <li><strong>Replace</strong><span>For risky parts, a second search finds successors. Nemotron Ultra judges each one as drop-in, pin-compatible or a PCB change.</span></li>
+      <li><strong>Brief</strong><span>Ultra reads recent supply-chain news for your riskiest vendors and writes what to fix first.</span></li>
+    </ol>
+    <p class="how-note">The risk score is plain arithmetic on the extracted facts, not a model's opinion, so you can see why a part scored what it did.</p>
+  </section>
+</main>
+
+<aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="d-title">
+  <div class="drawer-scrim" data-close></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true">
+    <button class="drawer-close" data-close aria-label="Close part details">×</button>
+    <div id="drawer-body"></div>
+  </div>
+</aside>
+
+<footer class="foot">
+  <span>Built on NVIDIA Nemotron via Nebius Token Factory, with Tavily for live research.</span>
+  <span>Open source, MIT license.</span>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

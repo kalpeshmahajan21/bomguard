@@ -1,0 +1,184 @@
+"""BOMGuard API: upload a BOM, stream per-part risk analysis over Server-Sent Events."""
+import asyncio
+import csv
+import io
+import json
+import os
+import time
+import uuid
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+
+from . import agent, bom, config, llm, mock, research
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SAMPLE = os.path.join(ROOT, "samples", "flight_controller_bom.csv")
+
+app = FastAPI(title="BOMGuard")
+SESSIONS: dict[str, dict] = {}
+
+
+@app.get("/")
+def index():
+    return FileResponse(os.path.join(ROOT, "static", "index.html"))
+
+
+@app.get("/api/config")
+def get_config():
+    return {
+        "mock": config.MOCK,
+        "models": {"fast": config.MODEL_FAST, "extract": config.MODEL_EXTRACT, "reason": config.MODEL_REASON},
+        "keys": {"nebius": bool(config.NEBIUS_API_KEY), "tavily": bool(config.TAVILY_API_KEY)},
+    }
+
+
+@app.get("/api/sample.csv")
+def sample():
+    return FileResponse(SAMPLE, media_type="text/csv", filename="flight_controller_bom.csv")
+
+
+@app.post("/api/bom")
+async def upload_bom(file: UploadFile | None = File(None), text: str = Form(""), use_sample: bool = Form(False)):
+    if use_sample:
+        with open(SAMPLE) as f:
+            raw, name = f.read(), "flight_controller_bom.csv"
+    elif file is not None:
+        raw, name = (await file.read()).decode("utf-8", errors="replace"), file.filename or "bom.csv"
+    elif text.strip():
+        raw, name = text, "pasted.csv"
+    else:
+        raise HTTPException(400, "Upload a CSV file or paste BOM rows.")
+
+    headers, rows = bom.read_csv(raw)
+    if not rows:
+        raise HTTPException(400, "That file has no rows. Export your BOM as CSV with a header row.")
+    parts = bom.heuristic_parts(headers, rows)
+    if not any(p["mpn"] for p in parts):
+        raise HTTPException(400, "Couldn't find a part-number column. Name it 'MPN' or 'Manufacturer Part Number'.")
+
+    usage, stats = llm.Usage(), research.TavilyStats()
+    if config.MOCK:
+        await asyncio.sleep(0.6)
+        usage.add("fast", 1800, 0.6)
+        parts = mock.normalize(parts)
+    else:
+        parts = await bom.normalize(parts, usage)
+
+    sid = uuid.uuid4().hex[:12]
+    SESSIONS[sid] = {"name": name, "parts": parts, "results": [], "brief": None, "usage": usage, "stats": stats}
+    return {"session": sid, "name": name, "parts": parts, "usage": usage.tiers, "truncated": len(rows) > config.MAX_ROWS}
+
+
+def _sse(event: str, data) -> str:
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+@app.get("/api/analyze/{sid}")
+async def analyze(sid: str):
+    s = SESSIONS.get(sid)
+    if not s:
+        raise HTTPException(404, "Session expired. Upload the BOM again.")
+    impl = mock if config.MOCK else agent
+    q: asyncio.Queue = asyncio.Queue()
+    usage, stats = s["usage"], s["stats"]
+
+    async def emit(event, data):
+        await q.put(_sse(event, data))
+
+    def snapshot():
+        return {"tiers": usage.tiers, "tavily": vars(stats)}
+
+    async def run():
+        t0 = time.perf_counter()
+        sem = asyncio.Semaphore(config.CONCURRENCY)
+
+        async def one(p):
+            async with sem:
+                try:
+                    r = await impl.analyze_part(p, usage, stats, emit)
+                except Exception as e:
+                    r = {**p, "lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
+                         "summary": f"Research failed: {type(e).__name__}: {str(e)[:160]}", "risk": 40, "band": "watch",
+                         "sources": [], "claims": [], "alternatives": []}
+                s["results"].append(r)
+                await emit("part", r)
+                await emit("usage", snapshot())
+
+        s["results"] = []
+        await asyncio.gather(*(one(p) for p in s["parts"]))
+        await emit("stage", {"row": 0, "stage": "brief"})
+        s["brief"] = await impl.brief(s["results"], usage, stats)
+        await emit("brief", s["brief"])
+        await emit("usage", snapshot())
+        await emit("done", {"seconds": round(time.perf_counter() - t0, 1)})
+        await q.put(None)
+
+    async def stream():
+        task = asyncio.create_task(run())
+        try:
+            while True:
+                item = await q.get()
+                if item is None:
+                    break
+                yield item
+        except asyncio.CancelledError:
+            task.cancel()
+            raise
+        finally:
+            if task.done() and task.exception():
+                yield _sse("error", {"message": str(task.exception())[:300]})
+
+    return StreamingResponse(stream(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+def _sorted(s):
+    return sorted(s["results"], key=lambda r: -r.get("risk", 0))
+
+
+@app.get("/api/report/{sid}.csv")
+def report_csv(sid: str):
+    s = SESSIONS.get(sid) or {}
+    if not s.get("results"):
+        raise HTTPException(404, "Run an analysis first.")
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["Risk", "Band", "Designator", "Manufacturer", "MPN", "Category", "Lifecycle", "Availability",
+                "RoHS", "Confidence", "Summary", "Alternatives", "Sources"])
+    for r in _sorted(s):
+        w.writerow([r.get("risk"), r.get("band"), r.get("refdes"), r.get("manufacturer"), r.get("mpn"), r.get("category"),
+                    r.get("lifecycle"), r.get("availability"), r.get("rohs"), r.get("confidence"), r.get("summary"),
+                    "; ".join(f"{a['mpn']} ({a['fit']})" for a in r.get("alternatives", [])),
+                    " ".join(c["url"] for c in r.get("claims", []))])
+    return PlainTextResponse(buf.getvalue(), media_type="text/csv",
+                             headers={"Content-Disposition": f'attachment; filename="bomguard-report-{sid}.csv"'})
+
+
+@app.get("/api/report/{sid}.md")
+def report_md(sid: str):
+    s = SESSIONS.get(sid) or {}
+    if not s.get("results"):
+        raise HTTPException(404, "Run an analysis first.")
+    b = s.get("brief") or {}
+    lines = [f"# BOMGuard report — {s['name']}", "", f"**BOM health: {b.get('health', '?')}/100**", "",
+             b.get("headline", ""), "", "## Top risks", ""]
+    for t in b.get("top_risks", []):
+        lines.append(f"- **{t.get('mpn')}** ({t.get('urgency')}): {t.get('why')} → {t.get('action')}")
+    lines += ["", "## Next steps", ""] + [f"- {n}" for n in b.get("next_steps", [])]
+    lines += ["", "## Parts", "", "| Risk | Part | Lifecycle | Availability | Alternatives |", "|---|---|---|---|---|"]
+    for r in _sorted(s):
+        alts = ", ".join(f"{a['mpn']} ({a['fit']})" for a in r.get("alternatives", [])) or "—"
+        lines.append(f"| {r.get('risk')} | {r.get('manufacturer')} {r.get('mpn') or r.get('description')} | "
+                     f"{r.get('lifecycle')} | {r.get('availability')} | {alts} |")
+    lines += ["", "## Evidence", ""]
+    for r in _sorted(s):
+        for c in r.get("claims", []):
+            lines.append(f"- {r.get('mpn')}: {c['claim']} [source]({c['url']})")
+    lines += ["", "_Generated by BOMGuard — Nemotron on Nebius Token Factory + Tavily live research._"]
+    return PlainTextResponse("\n".join(lines), media_type="text/markdown",
+                             headers={"Content-Disposition": f'attachment; filename="bomguard-report-{sid}.md"'})
+
+
+app.mount("/static", StaticFiles(directory=os.path.join(ROOT, "static")), name="static")

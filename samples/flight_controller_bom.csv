@@ -1,0 +1,15 @@
+Designator,Qty,Manufacturer,Manufacturer Part Number,Description
+U1,1,Microchip,ATMEGA328P-AU,8-bit AVR MCU 32KB flash TQFP-32
+U2,1,TDK InvenSense,MPU-6050,6-axis gyro + accelerometer IMU QFN-24
+U3,1,Honeywell,HMC5883L,3-axis digital compass IC
+U4,1,Bosch Sensortec,BMP180,Digital barometric pressure sensor
+U5,1,Silicon Labs,CP2102-GMR,USB to UART bridge QFN-28
+U6,1,AMS,AMS1117-3.3,3.3V 1A LDO regulator SOT-223
+U7,1,Espressif,ESP32-WROOM-32E,Wi-Fi + BT module
+U8,1,TI,SN74HC595N,8-bit shift register
+U9,1,TI,TPS63020DSJR,Buck-boost converter 4A
+U10,1,Winbond,W25Q32JVSSIQ,32Mbit SPI NOR flash
+U11,1,TI,LM358DR,Dual op-amp SOIC-8
+U12,1,Analog Devices,DS3231SN#,Precision RTC with TCXO
+"R1,R2,R3,R4",4,,,10k 0603 1% resistor
+"C1,C2,C3,C4,C5,C6",6,,,100nF 0603 X7R capacitor
