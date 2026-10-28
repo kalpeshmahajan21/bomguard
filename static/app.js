@@ -262,7 +262,7 @@ function renderRow(r, fresh) {
   tr.innerHTML = `
     <td class="ref" title="${esc(r.refdes)}">${esc(r.refdes || "#" + r.row)}</td>
     <td><div class="part-mpn">${esc(r.mpn || r.description)}</div><div class="part-sub">${esc([r.manufacturer, r.category || r.description].filter(Boolean).join(" · "))}</div></td>
-    <td><span class="pill pill-${lb}">${esc(r.lifecycle)}</span>${r.confidence === "low" ? ' <span class="part-sub">low confidence</span>' : ""}${evidenceLine(r.evidence)}</td>
+    <td><span class="pill pill-${lb}">${esc(r.lifecycle)}</span>${["low", "medium"].includes(r.confidence) && r.lifecycle !== "Generic" ? ` <span class="part-sub">${esc(r.confidence)} confidence</span>` : ""}${evidenceLine(r.evidence)}</td>
     <td><span class="pill pill-${sb}">${esc(r.availability)}</span></td>
     <td class="num"><div class="risk-cell"><span class="risk-bar"><i style="width:${r.risk}%;background:${COLOR[rb]}"></i></span><span class="risk-num">${r.risk}</span></div></td>
     <td class="alts">${alts || '<span class="part-sub">—</span>'}</td>`;

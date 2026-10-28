@@ -200,6 +200,19 @@ def _snippet(quote: str, status: str, limit: int = 50) -> str:
     return ("…" if start else "") + q[start:end].strip() + ("…" if end < len(q) else "")
 
 
+_CONF_RANK = {"low": 0, "medium": 1, "high": 2}
+
+
+def secondary_cap(lifecycle: str, claims: list[dict], manufacturer: str) -> str | None:
+    """A page that isn't a primary source (manufacturer or distributor status field) is weaker evidence.
+    If only such pages back the verdict: at most "medium" when 2+ different sites agree, else "low"."""
+    sup = [c for c in claims if c.get("field") == "lifecycle" and quote_status(c.get("quote", "")) == lifecycle]
+    if not sup or max(source_tier(c.get("url", ""), manufacturer) for c in sup) > 1:
+        return None
+    sites = {".".join(_host_labels(c.get("url", ""))[-2:]) for c in sup}
+    return "medium" if len(sites) >= 2 else "low"
+
+
 def pick_evidence(lifecycle: str, claims: list[dict], manufacturer: str) -> dict | None:
     """The single best verified quote behind the lifecycle verdict, for the main table:
     it must state the same status; manufacturer beats distributor beats anything else."""
@@ -360,6 +373,11 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
     elif lifecycle_conflict(facts["lifecycle"], claims):
         confidence = "low"
         summary = (summary + " Some sources disagree; confirm on the manufacturer's product page.").strip()
+    else:
+        cap = secondary_cap(facts["lifecycle"], claims, mfr)
+        if cap and _CONF_RANK.get(confidence, 0) > _CONF_RANK[cap]:
+            confidence = cap
+            summary = (summary + " Only secondary sources state this; confirm on the manufacturer's product page.").strip()
     result.update(
         lifecycle=facts["lifecycle"], availability=facts["availability"], rohs=facts["rohs"],
         confidence=confidence, summary=summary, claims=claims, successor=successor,
