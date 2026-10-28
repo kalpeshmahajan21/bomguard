@@ -15,6 +15,7 @@ from . import agent, bom, config, llm, mock, research
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAMPLE = os.path.join(ROOT, "samples", "flight_controller_bom.csv")
+EXAMPLE = os.path.join(ROOT, "samples", "example_report.json")
 
 app = FastAPI(title="BOMGuard")
 SESSIONS: dict[str, dict] = {}
@@ -37,6 +38,16 @@ def get_config():
 @app.get("/api/sample.csv")
 def sample():
     return FileResponse(SAMPLE, media_type="text/csv", filename="flight_controller_bom.csv")
+
+
+@app.get("/api/example")
+def example():
+    """A saved live run of the sample BOM, shown instantly. Registered as session 'example' so the
+    report downloads work the same way as for a live run."""
+    with open(EXAMPLE, encoding="utf-8") as f:
+        ex = json.load(f)
+    SESSIONS["example"] = {"name": ex["name"], "parts": ex["parts"], "results": ex["results"], "brief": ex["brief"]}
+    return {**ex, "session": "example"}
 
 
 @app.post("/api/bom")
@@ -78,7 +89,7 @@ def _sse(event: str, data) -> str:
 @app.get("/api/analyze/{sid}")
 async def analyze(sid: str):
     s = SESSIONS.get(sid)
-    if not s:
+    if not s or "usage" not in s:
         raise HTTPException(404, "Session expired. Upload the BOM again.")
     impl = mock if config.MOCK else agent
     q: asyncio.Queue = asyncio.Queue()
@@ -100,7 +111,7 @@ async def analyze(sid: str):
                     r = await impl.analyze_part(p, usage, stats, emit)
                 except Exception as e:
                     r = {**p, "lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
-                         "summary": f"Research failed: {type(e).__name__}: {str(e)[:160]}", "risk": 40, "band": "watch",
+                         "summary": f"Research failed: {type(e).__name__}: {str(e)[:160]}", "risk": 45, "band": "watch",
                          "sources": [], "claims": [], "alternatives": []}
                 s["results"].append(r)
                 await emit("part", r)

@@ -31,6 +31,44 @@ const drop = $("#drop");
 drop.addEventListener("drop", (ev) => { const f = ev.dataTransfer.files[0]; if (f) start({ file: f }); });
 $("#file").addEventListener("change", (ev) => { const f = ev.target.files[0]; if (f) start({ file: f }); });
 $("#run-sample").addEventListener("click", () => start({ sample: true }));
+$("#show-example").addEventListener("click", showExample);
+
+// A saved live run, rendered through the same code a live scan uses, so judges see a full report instantly.
+async function showExample() {
+  showError("");
+  if (state.es) state.es.close();
+  let ex;
+  try {
+    const r = await fetch("/api/example");
+    ex = await r.json();
+    if (!r.ok) throw new Error(ex.detail || "Couldn't load the example.");
+  } catch (e) {
+    showError(e.message);
+    return;
+  }
+  resetBoard();
+  state.session = ex.session;
+  state.parts = new Map(ex.parts.map((p) => [p.row, p]));
+  state.results = new Map(ex.results.map((r) => [r.row, r]));
+  renderSkeleton(ex);
+  ex.results.forEach((r) => renderRow(r, false));
+  renderCounts();
+  renderUsage(ex.usage);
+  renderBrief(ex.brief);
+  ["fast", "tavily", "extract", "reason"].forEach((t) => setChip(t, "used"));
+  ["t1", "t2", "t3", "t4"].forEach((id) => $("#" + id).classList.add("done"));
+  $("#stat-fast").innerHTML = `${ex.parts.length} rows · ${fmt(ex.usage.tiers.fast.tokens)} tok`;
+  $("#file-name").textContent += ` · checked in ${ex.seconds}s`;
+  const note = $("#example-note");
+  note.textContent = `Saved result of a live run on ${ex.generated_at}. Click "Check the sample" above to run it live now.`;
+  note.hidden = false;
+  sortRows();
+  $("#exports").hidden = false;
+  $("#dl-md").href = `/api/report/${ex.session}.md`;
+  $("#dl-csv").href = `/api/report/${ex.session}.csv`;
+  $("#results").hidden = false;
+  $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 function showError(msg) {
   const el = $("#intake-error");
@@ -40,6 +78,7 @@ function showError(msg) {
 
 async function start({ file, sample }) {
   showError("");
+  $("#example-note").hidden = true;
   if (state.es) state.es.close();
   const btn = $("#run-sample");
   btn.disabled = true;

@@ -4,7 +4,7 @@ import re
 from . import config, llm, research
 
 LIFECYCLES = ["Active", "NRND", "Last Time Buy", "EOL", "Obsolete", "Unknown"]
-LIFECYCLE_RISK = {"Active": 10, "NRND": 55, "Last Time Buy": 80, "EOL": 85, "Obsolete": 95, "Unknown": 40}
+LIFECYCLE_RISK = {"Active": 10, "NRND": 55, "Last Time Buy": 80, "EOL": 85, "Obsolete": 95, "Unknown": 45}  # Unknown is never "healthy"
 AVAIL_RISK = {"In stock": 0, "Limited": 15, "Out of stock": 25, "Unknown": 5}
 
 

@@ -1,0 +1,1519 @@
+{
+ "name": "flight_controller_bom.csv",
+ "generated_at": "2026-10-28",
+ "note": "Saved from a live run on bomguard.onrender.com",
+ "seconds": 41.8,
+ "usage": {
+  "tiers": {
+   "fast": {
+    "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+    "calls": 1,
+    "tokens": 1771,
+    "seconds": 8.79
+   },
+   "extract": {
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "calls": 12,
+    "tokens": 66527,
+    "seconds": 30.05
+   },
+   "reason": {
+    "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+    "calls": 6,
+    "tokens": 48234,
+    "seconds": 72.82
+   }
+  },
+  "tavily": {
+   "searches": 32,
+   "credits": 61,
+   "sources": 135,
+   "cache_hits": 0
+  }
+ },
+ "brief": {
+  "health": 31,
+  "headline": "BOM not production-ready: multiple obsolete/out-of-stock parts lack alternatives.",
+  "top_risks": [
+   {
+    "mpn": "BMP180",
+    "why": "Obsolete, out of stock, no alternatives",
+    "action": "Qualify replacement pressure sensor immediately",
+    "urgency": "now"
+   },
+   {
+    "mpn": "MPU-6050",
+    "why": "Obsolete IMU, in stock but no long-term supply",
+    "action": "Validate ICM-42670-P or BMI270 as drop-in replacement",
+    "urgency": "now"
+   },
+   {
+    "mpn": "W25Q32JVSSIQ",
+    "why": "Obsolete flash, in stock but EOL",
+    "action": "Switch to GD25Q32CSIG pin-compatible alternative",
+    "urgency": "now"
+   },
+   {
+    "mpn": "HMC5883L",
+    "why": "Obsolete Honeywell IMU, availability unknown, supply constraints reported",
+    "action": "Qualify QMC5883L pin-compatible or LIS3MDL functional alternative",
+    "urgency": "now"
+   },
+   {
+    "mpn": "ATMEGA328P-AU",
+    "why": "NRND status, moderate risk, no alternatives",
+    "action": "Assess migration to newer MCU for new designs",
+    "urgency": "this quarter"
+   }
+  ],
+  "market_notes": [
+   {
+    "claim": "Honeywell Aerospace supply constraints and spin-off may affect HMC5883L availability",
+    "source_index": 3,
+    "url": "https://www.ft.com/content/3989b6a0-ba02-412b-8f35-b6817c3e42f6?syn-25a6b1a6=1",
+    "source_title": "Honeywell Aerospace shares plunge on failure to overcome supply constraints"
+   },
+   {
+    "claim": "TDK semiconductor supply shortages reported, may impact MPU-6050 supply",
+    "source_index": 6,
+    "url": "https://www.tdk.com/system/files/integrated_report_pdf_2026_01_en.pdf",
+    "source_title": "TDK United Report"
+   },
+   {
+    "claim": "Bosch Sensortec funding new IMU development, but BMP180 pressure sensor obsolete",
+    "source_index": 0,
+    "url": "https://www.bosch-sensortec.com/en/news/university-researchers-join-forces-with-industry-partners-to-keep-people-healthy-and-independent-for-longer",
+    "source_title": "University researchers join forces with industry partners to keep people healthy and independent for longer | Bosch Sensortec"
+   }
+  ],
+  "next_steps": [
+   "Immediately source replacements for BMP180, MPU-6050, W25Q32JVSSIQ, HMC5883L",
+   "Validate alternative parts for form/fit/function",
+   "Confirm lifecycle for CP2102-GMR and ATMEGA328P-AU with manufacturers",
+   "Monitor Honeywell and TDK supply chain updates"
+  ]
+ },
+ "parts": [
+  {
+   "row": 1,
+   "mpn": "ATMEGA328P-AU",
+   "manufacturer": "Microchip",
+   "description": "8-bit AVR MCU 32KB flash TQFP-32",
+   "qty": "1",
+   "refdes": "U1",
+   "category": "MCU",
+   "is_generic": false
+  },
+  {
+   "row": 2,
+   "mpn": "MPU-6050",
+   "manufacturer": "TDK InvenSense",
+   "description": "6-axis gyro + accelerometer IMU QFN-24",
+   "qty": "1",
+   "refdes": "U2",
+   "category": "IMU",
+   "is_generic": false
+  },
+  {
+   "row": 3,
+   "mpn": "HMC5883L",
+   "manufacturer": "Honeywell",
+   "description": "3-axis digital compass IC",
+   "qty": "1",
+   "refdes": "U3",
+   "category": "IMU",
+   "is_generic": false
+  },
+  {
+   "row": 4,
+   "mpn": "BMP180",
+   "manufacturer": "Bosch Sensortec",
+   "description": "Digital barometric pressure sensor",
+   "qty": "1",
+   "refdes": "U4",
+   "category": "Pressure sensor",
+   "is_generic": false
+  },
+  {
+   "row": 5,
+   "mpn": "CP2102-GMR",
+   "manufacturer": "Silicon Labs",
+   "description": "USB to UART bridge QFN-28",
+   "qty": "1",
+   "refdes": "U5",
+   "category": "USB-UART bridge",
+   "is_generic": false
+  },
+  {
+   "row": 6,
+   "mpn": "AMS1117-3.3",
+   "manufacturer": "AMS",
+   "description": "3.3V 1A LDO regulator SOT-223",
+   "qty": "1",
+   "refdes": "U6",
+   "category": "LDO regulator",
+   "is_generic": false
+  },
+  {
+   "row": 7,
+   "mpn": "ESP32-WROOM-32E",
+   "manufacturer": "Espressif",
+   "description": "Wi-Fi + BT module",
+   "qty": "1",
+   "refdes": "U7",
+   "category": "Wi-Fi/BT module",
+   "is_generic": false
+  },
+  {
+   "row": 8,
+   "mpn": "SN74HC595N",
+   "manufacturer": "TI",
+   "description": "8-bit shift register",
+   "qty": "1",
+   "refdes": "U8",
+   "category": "Logic IC",
+   "is_generic": false
+  },
+  {
+   "row": 9,
+   "mpn": "TPS63020DSJR",
+   "manufacturer": "TI",
+   "description": "Buck-boost converter 4A",
+   "qty": "1",
+   "refdes": "U9",
+   "category": "Power regulator",
+   "is_generic": false
+  },
+  {
+   "row": 10,
+   "mpn": "W25Q32JVSSIQ",
+   "manufacturer": "Winbond",
+   "description": "32Mbit SPI NOR flash",
+   "qty": "1",
+   "refdes": "U10",
+   "category": "Flash memory",
+   "is_generic": false
+  },
+  {
+   "row": 11,
+   "mpn": "LM358DR",
+   "manufacturer": "TI",
+   "description": "Dual op-amp SOIC-8",
+   "qty": "1",
+   "refdes": "U11",
+   "category": "Op-amp",
+   "is_generic": false
+  },
+  {
+   "row": 12,
+   "mpn": "DS3231SN#",
+   "manufacturer": "Analog Devices",
+   "description": "Precision RTC with TCXO",
+   "qty": "1",
+   "refdes": "U12",
+   "category": "RTC",
+   "is_generic": false
+  },
+  {
+   "row": 13,
+   "mpn": "",
+   "manufacturer": "",
+   "description": "10k 0603 1% resistor",
+   "qty": "4",
+   "refdes": "R1,R2,R3,R4",
+   "category": "Resistor",
+   "is_generic": true
+  },
+  {
+   "row": 14,
+   "mpn": "",
+   "manufacturer": "",
+   "description": "100nF 0603 X7R capacitor",
+   "qty": "6",
+   "refdes": "C1,C2,C3,C4,C5,C6",
+   "category": "Capacitor",
+   "is_generic": true
+  }
+ ],
+ "results": [
+  {
+   "row": 1,
+   "mpn": "ATMEGA328P-AU",
+   "manufacturer": "Microchip",
+   "description": "8-bit AVR MCU 32KB flash TQFP-32",
+   "qty": "1",
+   "refdes": "U1",
+   "category": "MCU",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "ATmega328P (2026): Pinout, Packages & Live Findchips Stock",
+     "url": "https://blog.findchips.com/atmega328p-2026-pinout-packages-availability"
+    },
+    {
+     "title": "Findchips: ATMEGA328P-AU Price and Stock Results",
+     "url": "https://findchips.com/search/ATMEGA328P-AU"
+    },
+    {
+     "title": "ATMEGA328P-AU | Microcontrollers | MICROCHIP | LCSC",
+     "url": "https://www.lcsc.com/product-detail/C3225551.html"
+    },
+    {
+     "title": "ATMEGA328P-AU | Microcontrollers | MICROCHIP | LCSC",
+     "url": "https://www.lcsc.com/product-detail/microcontroller-units-mcus-mpus-socs_microchip-tech-atmega328p-au_C14877.html"
+    },
+    {
+     "title": "ATMEGA328P-AU | Microcontrollers | MICROCHIP | LCSC",
+     "url": "https://www.lcsc.com/product-detail/Microcontroller-Units-MCUs-MPUs-SOCs_Microchip-Tech-ATMEGA328P-AU_C14877.html"
+    },
+    {
+     "title": "ATMEGA328P-AU Application and Usage Guide",
+     "url": "https://www.flux.ai/jecstronic/atmega328p-au~vwn/files/atmega328p-au-application-and-usage-guide~kr"
+    },
+    {
+     "title": "ATmega328P: Pinout, Registers, Fuses, and Arduino Pin Mapping",
+     "url": "https://www.wevolver.com/article/atmega328p-pinout-registers-fuses-and-arduino-pin-mapping"
+    },
+    {
+     "title": "ATMEGA at end of life - General Discussion - Arduino Forum",
+     "url": "https://forum.arduino.cc/t/atmega-at-end-of-life/1320303"
+    },
+    {
+     "title": "ATMEGA at end of life - General Discussion - Arduino Forum",
+     "url": "https://forum.arduino.cc/t/atmega-at-end-of-life/1320303"
+    },
+    {
+     "title": "ATMEGA328P-AU Application and Usage Guide",
+     "url": "https://www.flux.ai/jecstronic/atmega328p-au~vwn/files/atmega328p-au-application-and-usage-guide~kr"
+    },
+    {
+     "title": "Three alternatives to ATMEGA-328P-AU Microcontroller ...",
+     "url": "https://www.seeedstudio.com/blog/2022/05/24/three-alternatives-to-atmega-328p-au-microcontroller-to-bypass-the-chip-crisis"
+    },
+    {
+     "title": "ATmega328P",
+     "url": "https://www.microchip.com/en-us/product/atmega328p"
+    },
+    {
+     "title": "recommended alternative to ATMEGA328P ( want to stay ...",
+     "url": "https://www.reddit.com/r/embedded/comments/1jfu1w1/recommended_alternative_to_atmega328p_want_to"
+    },
+    {
+     "title": "What Are the Seven Most Popular Atmel Products? | Microchip Technology",
+     "url": "https://www.microchip.com/en-us/about/media-center/blog/2025/seven-most-popular-atmel-products"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "NRND",
+     "quote": "Microchip currently marks the family Not Recommended for New Designs; this does not mean obsolete, but merits a migration review for a new",
+     "source_index": 5,
+     "url": "https://www.flux.ai/jecstronic/atmega328p-au~vwn/files/atmega328p-au-application-and-usage-guide~kr",
+     "source_title": "ATMEGA328P-AU Application and Usage Guide"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "NRND",
+     "quote": "Microchip lists the ATmega328P as \"Not Recommended for new designs,\" so treat it as a prototyping and maintenance part rather than the basis of a new production run.",
+     "source_index": 6,
+     "url": "https://www.wevolver.com/article/atmega328p-pinout-registers-fuses-and-arduino-pin-mapping",
+     "source_title": "ATmega328P: Pinout, Registers, Fuses, and Arduino Pin Mapping"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "NRND",
+     "quote": "Microchip currently lists theATmega328P product status as \"Not Recommended for new designs.\"",
+     "source_index": 6,
+     "url": "https://www.wevolver.com/article/atmega328p-pinout-registers-fuses-and-arduino-pin-mapping",
+     "source_title": "ATmega328P: Pinout, Registers, Fuses, and Arduino Pin Mapping"
+    },
+    {
+     "field": "availability",
+     "claim": "In stock",
+     "quote": "Availability | 18,794",
+     "source_index": 2,
+     "url": "https://www.lcsc.com/product-detail/C3225551.html",
+     "source_title": "ATMEGA328P-AU | Microcontrollers | MICROCHIP | LCSC"
+    },
+    {
+     "field": "rohs",
+     "claim": "Compliant",
+     "quote": "RoHS:  true",
+     "source_index": 1,
+     "url": "https://findchips.com/search/ATMEGA328P-AU",
+     "source_title": "Findchips: ATMEGA328P-AU Price and Stock Results"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "NRND",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The ATMEGA328P-AU is marked Not Recommended for New Designs by Microchip, remains in stock via distributors like LCSC and Findchips, and is RoHS compliant.",
+   "successor": null,
+   "unverified": [],
+   "risk": 55,
+   "band": "watch",
+   "recommendation": "Choose ATMEGA328PB-AU for new designs—it is the actively maintained successor with more peripherals and no NRND flag, but budget firmware migration effort for the new device signature and peripheral register map.",
+   "alt_source_offset": 8
+  },
+  {
+   "row": 2,
+   "mpn": "MPU-6050",
+   "manufacturer": "TDK InvenSense",
+   "description": "6-axis gyro + accelerometer IMU QFN-24",
+   "qty": "1",
+   "refdes": "U2",
+   "category": "IMU",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "EV_MPU-6050 TDK InvenSense | Sensor Evaluation Boards",
+     "url": "https://www.digikey.com/en/products/detail/tdk-invensense/EV-MPU-6050/4038012"
+    },
+    {
+     "title": "MPU-6050A - IMUs (Inertial Measurement Units)",
+     "url": "https://www.digikey.com/en/products/detail/tdk-invensense/MPU-6050A/21292214"
+    },
+    {
+     "title": "MPU-6000 and MPU-6050 Product Specification Revision ...",
+     "url": "https://www.farnell.com/datasheets/1663858.pdf"
+    },
+    {
+     "title": "MPU-6050 - IMUs (Inertial Measurement Units)",
+     "url": "https://www.digikey.com/en/products/detail/tdk-invensense/MPU-6050/4038009"
+    },
+    {
+     "title": "TDK InvenSense MPU-6050 Pinout Diagram & Footprint Diagram | LCSC Electronics",
+     "url": "https://www.lcsc.com/product-image/C24112.html"
+    },
+    {
+     "title": "IMU obsolescence: which MEMS motion sensors are EOL (2026)",
+     "url": "https://theobsolescencebrief.com/imu-motion-sensor-obsolescence"
+    },
+    {
+     "title": "Is the MPU6050 Discontinued? Best Alternatives and Replacements | Embedded Nerd",
+     "url": "https://embeddednerd.com/mpu6050-discontinued-alternatives"
+    },
+    {
+     "title": "MPU-6050 vs MPU-6500 vs MPU-9250 vs ICM-20948",
+     "url": "https://solderhub.com/articles/mpu6050-vs-mpu6500-vs-mpu9250-vs-icm20948"
+    },
+    {
+     "title": "Is the MPU6050 Discontinued? Best Alternatives and Replacements | Embedded Nerd",
+     "url": "https://embeddednerd.com/mpu6050-discontinued-alternatives"
+    },
+    {
+     "title": "MPU-6050 replacement: obsolete 6-axis IMU cross-ref (2026)",
+     "url": "https://theobsolescencebrief.com/mpu6050-replacement"
+    },
+    {
+     "title": "MPU6050 Review Is This Sensor Still a Good Choice in 2025 - AIChipLink",
+     "url": "https://aichiplink.com/blog/MPU6050-Review-Is-This-Sensor-Still-a-Good-Choice-in-2025_751"
+    },
+    {
+     "title": "MPU-6050 vs MPU-6500 vs MPU-9250 vs ICM-20948 Compared | SolderHub",
+     "url": "https://solderhub.com/articles/mpu6050-vs-mpu6500-vs-mpu9250-vs-icm20948"
+    },
+    {
+     "title": "MPU-6050 : Detailed Information | Sensors and Sensor Systems - Motion / Inertial Sensors - IMU (Inertial Measurement Unit) | TDK Product Center",
+     "url": "https://product.tdk.com/en/search/sensor/mortion-inertial/imu/info?part_no=MPU-6050"
+    },
+    {
+     "title": "Best IMU sensors for new builds? : r/diydrones",
+     "url": "https://www.reddit.com/r/diydrones/comments/xsntyr/best_imu_sensors_for_new_builds"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Obsolete",
+     "quote": "This product is no longer manufactured.",
+     "source_index": 1,
+     "url": "https://www.digikey.com/en/products/detail/tdk-invensense/MPU-6050A/21292214",
+     "source_title": "MPU-6050A - IMUs (Inertial Measurement Units)"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "Obsolete",
+     "quote": "This product is no longer manufactured. Part Status Obsolete",
+     "source_index": 3,
+     "url": "https://www.digikey.com/en/products/detail/tdk-invensense/MPU-6050/4038009",
+     "source_title": "MPU-6050 - IMUs (Inertial Measurement Units)"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "obsolete",
+     "quote": "TDK InvenSense MPU-6050 status (Obsolete; alternate ICM-42670-P)",
+     "source_index": 5,
+     "url": "https://theobsolescencebrief.com/imu-motion-sensor-obsolescence",
+     "source_title": "IMU obsolescence: which MEMS motion sensors are EOL (2026)"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "discontinued",
+     "quote": "TDK InvenSense issued an official EOL notification (PCN-000614) on July 23, 2023, covering the MPU-6050",
+     "source_index": 6,
+     "url": "https://embeddednerd.com/mpu6050-discontinued-alternatives",
+     "source_title": "Is the MPU6050 Discontinued? Best Alternatives and Replacements | Embedded Nerd"
+    },
+    {
+     "field": "availability",
+     "claim": "In stock",
+     "quote": "3339 units currently in stock. In-Stock: 3,339 3,339 In stock, ships now",
+     "source_index": 4,
+     "url": "https://www.lcsc.com/product-image/C24112.html",
+     "source_title": "TDK InvenSense MPU-6050 Pinout Diagram & Footprint Diagram | LCSC Electronics"
+    },
+    {
+     "field": "rohs",
+     "claim": "Compliant",
+     "quote": "The MPU-60X0 is RoHS and Green compliant.",
+     "source_index": 2,
+     "url": "https://www.farnell.com/datasheets/1663858.pdf",
+     "source_title": "MPU-6000 and MPU-6050 Product Specification Revision ..."
+    }
+   ],
+   "alternatives": [
+    {
+     "mpn": "ICM-42670-P",
+     "manufacturer": "TDK InvenSense",
+     "fit": "Functional",
+     "differences": "Different package, pinout, register map, WHO_AM_I identity, and software interface; adds SPI and I3C interfaces alongside I2C; includes programmable digital filters, wake-on-motion, freefall detection, pedometer, tilt detection, significant-motion detection; accel ranges ±2/±4/±8/±16g, gyro up to ±2000°/s; ~0.55mA 6-axis low-noise, ~3.5µA sleep. Not a drop-in; requires PCB redesign and firmware rewrite.",
+     "source_index": 8,
+     "url": "https://embeddednerd.com/mpu6050-discontinued-alternatives",
+     "source_title": "Is the MPU6050 Discontinued? Best Alternatives and Replacements | Embedded Nerd"
+    },
+    {
+     "mpn": "ICM-42688-P",
+     "manufacturer": "TDK InvenSense",
+     "fit": "Functional",
+     "differences": "Current-production 6-axis IMU from same vendor; targeted at higher-performance/low-noise applications; different package, pinout, register map, and identity vs MPU-6050; interface and register architecture differ. Requires new PCB layout and driver development.",
+     "source_index": 5,
+     "url": "https://theobsolescencebrief.com/imu-motion-sensor-obsolescence",
+     "source_title": "IMU obsolescence: which MEMS motion sensors are EOL (2026)"
+    },
+    {
+     "mpn": "BMI270",
+     "manufacturer": "Bosch Sensortec",
+     "fit": "Functional",
+     "differences": "Different manufacturer (Bosch), different package, register map, and electrical interface; listed as current-generation 6-axis IMU. No pin or register compatibility; full board re-layout and firmware port required.",
+     "source_index": 5,
+     "url": "https://theobsolescencebrief.com/imu-motion-sensor-obsolescence",
+     "source_title": "IMU obsolescence: which MEMS motion sensors are EOL (2026)"
+    }
+   ],
+   "lifecycle": "Obsolete",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The TDK InvenSense MPU-6050 is obsolete per manufacturer EOL notice, remains in stock via distributors like LCSC, and is RoHS compliant.",
+   "successor": null,
+   "unverified": [],
+   "risk": 95,
+   "band": "critical",
+   "recommendation": "Start with ICM-42670-P as TDK's named alternate for MPU-6050, but plan a full PCB respin and driver rewrite since no candidate preserves footprint, pinout, or register map.",
+   "alt_source_offset": 8
+  },
+  {
+   "row": 3,
+   "mpn": "HMC5883L",
+   "manufacturer": "Honeywell",
+   "description": "3-axis digital compass IC",
+   "qty": "1",
+   "refdes": "U3",
+   "category": "IMU",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "Honeywell",
+     "url": "https://www.farnell.com/datasheets/2014448.pdf"
+    },
+    {
+     "title": "Three-Axis Digital Compass IC HMC5883L",
+     "url": "https://www.farnell.com/datasheets/1683374.pdf"
+    },
+    {
+     "title": "Compass Module 3-Axis HMC5883L (#29133)",
+     "url": "https://www.mouser.com/datasheet/2/321/29133-HMC5883L-Compass-Module-IC-Documentation-v1.-369990.pdf"
+    },
+    {
+     "title": "3-Axis Digital Compass IC HMC5883L",
+     "url": "https://www.mouser.com/datasheet/2/737/HMC5883L_3_Axis_Digital_Compass_IC-2526909.pdf"
+    },
+    {
+     "title": "HMC5883L-TR Honeywell Aerospace",
+     "url": "https://www.digikey.com/en/products/detail/honeywell-aerospace/HMC5883L-TR/2507850"
+    },
+    {
+     "title": "Honeywell",
+     "url": "https://www.ic-components.al/files/ad/HMC5883L-TR.pdf"
+    },
+    {
+     "title": "HMC5883L Digital Compass IC: Pinout, Alternative, and Applications",
+     "url": "https://www.allelcoelec.com/blog/HMC5883L-Digital-Compass-IC-Pinout,Alternative,and-Applications.html"
+    },
+    {
+     "title": "3-Axis Digital Compass IC HMC5883L",
+     "url": "https://www.jameco.com/jameco/products/prodds/2150248.pdf"
+    },
+    {
+     "title": "HMC5883L vs QMC5883L: Key Differences in 2026",
+     "url": "https://www.accio.com/business/hmc5883l-vs-qmc5883l"
+    },
+    {
+     "title": "Best Magnetometer Modules for Arduino & ESP32 (Compass Buying Guide)",
+     "url": "https://microcontrollerslab.com/best-magnetometer-modules-compass-sensors-for-arduino-esp32-qmc5883l-hmc5883l-lis3mdl-and-more-buying-guide"
+    },
+    {
+     "title": "3-Axis Digital Compass IC HMC5883L - Adafruit",
+     "url": "https://cdn-shop.adafruit.com/datasheets/HMC5883L_3-Axis_Digital_Compass_IC.pdf"
+    },
+    {
+     "title": "3-Axis Magnetometer Compass Magnetic Module Sensor ...",
+     "url": "https://www.ebay.com/itm/405006641277"
+    },
+    {
+     "title": "3-Axis Digital Compass IC HMC5883L - Jameco Electronics",
+     "url": "https://www.jameco.com/jameco/products/prodds/2150248.pdf"
+    },
+    {
+     "title": "HMC5883L Digital Compass IC: Pinout, Alternative, and Applications",
+     "url": "https://www.allelcoelec.com/blog/HMC5883L-Digital-Compass-IC-Pinout,Alternative,and-Applications.html"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Obsolete",
+     "quote": "After September 30, 2016, this part will not be available for shipment.",
+     "source_index": 5,
+     "url": "https://www.ic-components.al/files/ad/HMC5883L-TR.pdf",
+     "source_title": "Honeywell"
+    },
+    {
+     "field": "rohs",
+     "claim": "Compliant",
+     "quote": "RoHS Status | RoHS Compliant",
+     "source_index": 6,
+     "url": "https://www.allelcoelec.com/blog/HMC5883L-Digital-Compass-IC-Pinout,Alternative,and-Applications.html",
+     "source_title": "HMC5883L Digital Compass IC: Pinout, Alternative, and Applications"
+    }
+   ],
+   "alternatives": [
+    {
+     "mpn": "QMC5883L",
+     "manufacturer": "QST",
+     "fit": "Pin-compatible",
+     "differences": "Same 16-LCC footprint per source [9], but I2C address 0x0D vs 0x1E, different register map (not register-compatible), 16-bit ADC vs 12-bit, selectable ±2/±8 G range vs ±0.8 mT, up to 200 Hz output rate, requires QMC5883L library (e.g., MechaQMC5883), onboard regulator allows 3.3 V/5 V supply.",
+     "source_index": 9,
+     "url": "https://microcontrollerslab.com/best-magnetometer-modules-compass-sensors-for-arduino-esp32-qmc5883l-hmc5883l-lis3mdl-and-more-buying-guide",
+     "source_title": "Best Magnetometer Modules for Arduino & ESP32 (Compass Buying Guide)"
+    },
+    {
+     "mpn": "LIS3MDL",
+     "manufacturer": "STMicroelectronics (CJMCU module)",
+     "fit": "Functional",
+     "differences": "3-axis magnetometer with ±16 G range and up to 1 kHz data rate, suited for high-field environments near motors/magnets; different package, pinout, and I2C register map; requires new PCB layout and driver.",
+     "source_index": 9,
+     "url": "https://microcontrollerslab.com/best-magnetometer-modules-compass-sensors-for-arduino-esp32-qmc5883l-hmc5883l-lis3mdl-and-more-buying-guide",
+     "source_title": "Best Magnetometer Modules for Arduino & ESP32 (Compass Buying Guide)"
+    },
+    {
+     "mpn": "RM3100",
+     "manufacturer": "PNI Sensor",
+     "fit": "Functional",
+     "differences": "Magneto-inductive technology, nanotesla resolution, no hysteresis; different package, interface, and register map; higher precision but different footprint and supply requirements; needs new PCB and firmware.",
+     "source_index": 9,
+     "url": "https://microcontrollerslab.com/best-magnetometer-modules-compass-sensors-for-arduino-esp32-qmc5883l-hmc5883l-lis3mdl-and-more-buying-guide",
+     "source_title": "Best Magnetometer Modules for Arduino & ESP32 (Compass Buying Guide)"
+    }
+   ],
+   "lifecycle": "Obsolete",
+   "availability": "Unknown",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The Honeywell HMC5883L has been discontinued with end-of-life orders due by March 31, 2016 and final shipments by September 30, 2016, making it obsolete.",
+   "successor": null,
+   "unverified": [],
+   "risk": 100,
+   "band": "critical",
+   "recommendation": "Choose QMC5883L for fastest migration — it shares the HMC5883L footprint and I2C interface, so only a library change is needed, and it is widely available at low cost.",
+   "alt_source_offset": 8
+  },
+  {
+   "row": 4,
+   "mpn": "BMP180",
+   "manufacturer": "Bosch Sensortec",
+   "description": "Digital barometric pressure sensor",
+   "qty": "1",
+   "refdes": "U4",
+   "category": "Pressure sensor",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "BMP180 Bosch Sensortec | Pressure Sensors, Transducers",
+     "url": "https://www.digikey.com/en/products/detail/bosch-sensortec/BMP180/2688259"
+    },
+    {
+     "title": "BMP180-SHUTL Bosch Sensortec",
+     "url": "https://www.digikey.com/en/products/detail/bosch-sensortec/BMP180-SHUTL/2688262"
+    },
+    {
+     "title": "BMP180 Bosch Sensortec",
+     "url": "https://au.mouser.com/en/ProductDetail/Bosch-Sensortec/BMP180?qs=d72FGnIDsgTlLIC5YM2WKA%3D%3D"
+    },
+    {
+     "title": "BMP180 Bosch Sensortec | Mouser Brazil",
+     "url": "https://br.mouser.com/en/ProductDetail/Bosch-Sensortec/BMP180?qs=d72FGnIDsgTlLIC5YM2WKA%3D%3D"
+    },
+    {
+     "title": "Lorem ipsum | Dolor sit amet",
+     "url": "https://www.mouser.com/datasheet/2/621/BST-BMP180-DS000-09-274799.pdf"
+    },
+    {
+     "title": "BMP180 Bosch Sensortec",
+     "url": "https://no.mouser.com/ProductDetail/Bosch-Sensortec/BMP180?qs=d72FGnIDsgTlLIC5YM2WKA%3D%3D"
+    },
+    {
+     "title": "BMP180 Barometer Module - DFRobot",
+     "url": "https://www.dfrobot.com/product-1221.html"
+    },
+    {
+     "title": "BMP180 Digital pressure sensor",
+     "url": "https://airu.coe.utah.edu/wp-content/uploads/sites/62/2017/01/BMP180-Digital-TempPressureAlt.pdf"
+    },
+    {
+     "title": "Replacement for BMP180 sensor",
+     "url": "https://community.bosch-sensortec.com/mems-sensors-forum-jrmujtaw/post/replacement-for-bmp180-sensor-VOvQRZTpRu7qXUv"
+    },
+    {
+     "title": "BMP180 | Bosch Sensortec | Pressure Sensors Transducers | M…",
+     "url": "https://make-tronics.com/pressure-sensors-transducers/bosch-sensortec/bmp180"
+    },
+    {
+     "title": "BMP180 Bosch Sensortec | Pressure Sensors, Transducers | DigiKey",
+     "url": "https://www.digikey.com/en/products/detail/bosch-sensortec/BMP180/2688259"
+    },
+    {
+     "title": "BMP180 Digital Pressure Sensor 300-1100 hPa I2C Mini Module",
+     "url": "https://store.ncd.io/product/bmp180-digital-pressure-sensor-300-1100-hpa-i2c-mini-module"
+    },
+    {
+     "title": "BMP180 Bosch Sensortec - Pressure Sensors - Distributors ...",
+     "url": "https://octopart.com/part/bosch-sensortec/BMP180"
+    },
+    {
+     "title": "Bosch Sensortec - BMP180 - Microchip USA",
+     "url": "https://www.microchipusa.com/product/bosch-sensortec/pressure-sensors-transducers/BMP180"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Obsolete",
+     "quote": "Lifecycle: Obsolete",
+     "source_index": 2,
+     "url": "https://au.mouser.com/en/ProductDetail/Bosch-Sensortec/BMP180?qs=d72FGnIDsgTlLIC5YM2WKA%3D%3D",
+     "source_title": "BMP180 Bosch Sensortec"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "Obsolete",
+     "quote": "Part Status. Obsolete.",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/bosch-sensortec/BMP180/2688259",
+     "source_title": "BMP180 Bosch Sensortec | Pressure Sensors, Transducers"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "This product is no longer manufactured.",
+     "quote": "This product is no longer manufactured.",
+     "source_index": 1,
+     "url": "https://www.digikey.com/en/products/detail/bosch-sensortec/BMP180-SHUTL/2688262",
+     "source_title": "BMP180-SHUTL Bosch Sensortec"
+    },
+    {
+     "field": "availability",
+     "claim": "Out of stock",
+     "quote": "Mouser does not presently sell this product in your region.",
+     "source_index": 2,
+     "url": "https://au.mouser.com/en/ProductDetail/Bosch-Sensortec/BMP180?qs=d72FGnIDsgTlLIC5YM2WKA%3D%3D",
+     "source_title": "BMP180 Bosch Sensortec"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Obsolete",
+   "availability": "Out of stock",
+   "rohs": "Unknown",
+   "confidence": "high",
+   "summary": "The Bosch Sensortec BMP180 pressure sensor is obsolete and currently out of stock across major distributors.",
+   "successor": null,
+   "unverified": [],
+   "risk": 100,
+   "band": "critical",
+   "recommendation": "No currently orderable alternative parts are named in the provided sources; the pages only describe the obsolete BMP180, its predecessor BMP085, and a discontinued DFRobot module, without identifying any replacement devices.",
+   "alt_source_offset": 8
+  },
+  {
+   "row": 5,
+   "mpn": "CP2102-GMR",
+   "manufacturer": "Silicon Labs",
+   "description": "USB to UART bridge QFN-28",
+   "qty": "1",
+   "refdes": "U5",
+   "category": "USB-UART bridge",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "CP2102-GMR by Silicon Labs | USB Interface ICs | Arrow.com",
+     "url": "https://www.arrow.com/en/products/cp2102-gmr/silicon-labs.html"
+    },
+    {
+     "title": "CP2102-GMR | Controllers | SILICON LABS | LCSC",
+     "url": "https://www.lcsc.com/product-detail/USB-ICs_SILICON-LABS_C6568.html"
+    },
+    {
+     "title": "CP2102-GMR | Controllers | SILICON LABS | LCSC",
+     "url": "https://www.lcsc.com/product-detail/C6568.html"
+    },
+    {
+     "title": "2605271821 Standardization of T&R Packing Quantity ... - Silicon Labs",
+     "url": "https://www.farnell.com/datasheets/4795596.pdf"
+    },
+    {
+     "title": "2602251775 Additional Assembly, Test and Ship Site for Various ...",
+     "url": "https://www.farnell.com/datasheets/4769515.pdf"
+    },
+    {
+     "title": "CP2102 vs CH340, FT232RL, PL2303: USB-UART crosses (2026)",
+     "url": "https://theobsolescencebrief.com/cp2102-vs-ch340-ft232rl-pl2303"
+    },
+    {
+     "title": "CP2102-GMR Silicon Labs | Controllers",
+     "url": "https://www.digikey.ro/en/products/detail/silicon-labs/CP2102-GMR/2051863"
+    },
+    {
+     "title": "191204684 CP2102N Revision A01 End of Life",
+     "url": "https://www.silabs.com/documents/public/pcns/191204684-CP2102N-Revision-A01-End-of-Life.pdf"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Not recommended for new design, minimums may apply",
+     "quote": "Not recommended for new design, minimums may apply",
+     "source_index": 6,
+     "url": "https://www.digikey.ro/en/products/detail/silicon-labs/CP2102-GMR/2051863",
+     "source_title": "CP2102-GMR Silicon Labs | Controllers"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "Part Status Active",
+     "quote": "Part Status Active",
+     "source_index": 0,
+     "url": "https://www.arrow.com/en/products/cp2102-gmr/silicon-labs.html",
+     "source_title": "CP2102-GMR by Silicon Labs | USB Interface ICs | Arrow.com"
+    },
+    {
+     "field": "availability",
+     "claim": "In-Stock: 28,955\n28,955In stock, ships now",
+     "quote": "In-Stock: 28,955\n28,955In stock, ships now",
+     "source_index": 2,
+     "url": "https://www.lcsc.com/product-detail/C6568.html",
+     "source_title": "CP2102-GMR | Controllers | SILICON LABS | LCSC"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Unknown",
+   "availability": "In stock",
+   "rohs": "Unknown",
+   "confidence": "low",
+   "summary": "Sources disagree on this part's lifecycle status. Check the manufacturer's product page before ordering.",
+   "successor": null,
+   "unverified": [],
+   "risk": 45,
+   "band": "watch"
+  },
+  {
+   "row": 6,
+   "mpn": "AMS1117-3.3",
+   "manufacturer": "AMS",
+   "description": "3.3V 1A LDO regulator SOT-223",
+   "qty": "1",
+   "refdes": "U6",
+   "category": "LDO regulator",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "AMS1117-3.3 SOT-223 - Voltage Regulators",
+     "url": "https://www.digikey.com/en/products/detail/shenzhen-slkormicro-semicon-co-ltd/AMS1117-3-3-SOT-223/21853079"
+    },
+    {
+     "title": "AMS1117-ADJ EVVO | Voltage Regulators",
+     "url": "https://www.digikey.com/en/products/detail/evvo/AMS1117-ADJ/24370079"
+    },
+    {
+     "title": "Findchips: AMS1117 Price and Stock Results",
+     "url": "https://www.findchips.com/search/AMS1117"
+    },
+    {
+     "title": "Advanced Monolithic Systems AMS1117-3.3",
+     "url": "https://www.lcsc.com/product-detail/Dropout-Regulators-LDO_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.html"
+    },
+    {
+     "title": "AMS1117-3.3 | Voltage Regulators - Linear, Low Drop Out (LDO) Regulators | Advanced Monolithic Systems | LCSC",
+     "url": "https://www.lcsc.com/product-detail/C6186.html"
+    },
+    {
+     "title": "Obsolete vs EOL vs Discontinued Components | HOMEHTA - Homehta",
+     "url": "https://www.homehta.com/blogs/obsolete-vs-eol-vs-discontinued-components"
+    },
+    {
+     "title": "AMS1117CD-3.3: Specifications, Alternatives, and ...",
+     "url": "https://www.ntchip.com/electronics-news/ams1117cd-3-3-alternatives-comparison-guide"
+    },
+    {
+     "title": "AMS1117-3.3 datasheet(1/5 Pages) AMS | 0.8A Adjustable/Fixed Low Dropout Linear Regulator",
+     "url": "https://www.alldatasheet.com/html-pdf/457823/AMS/AMS1117-3.3/58/1/AMS1117-3.3.html"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Part Status. Active",
+     "quote": "Part Status. Active",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/shenzhen-slkormicro-semicon-co-ltd/AMS1117-3-3-SOT-223/21853079",
+     "source_title": "AMS1117-3.3 SOT-223 - Voltage Regulators"
+    },
+    {
+     "field": "availability",
+     "claim": "1022710 in stock",
+     "quote": "From $0.1219, 1022710 in stock.",
+     "source_index": 3,
+     "url": "https://www.lcsc.com/product-detail/Dropout-Regulators-LDO_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.html",
+     "source_title": "Advanced Monolithic Systems AMS1117-3.3"
+    },
+    {
+     "field": "rohs",
+     "claim": "RoHS Compliance: 1 documents available",
+     "quote": "RoHS Compliance | 1 documents available",
+     "source_index": 4,
+     "url": "https://www.lcsc.com/product-detail/C6186.html",
+     "source_title": "AMS1117-3.3 | Voltage Regulators - Linear, Low Drop Out (LDO) Regulators | Advanced Monolithic Systems | LCSC"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Active",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The AMS1117-3.3 from Advanced Monolithic Systems is actively produced, widely in stock across distributors, and RoHS compliant.",
+   "successor": null,
+   "unverified": [],
+   "risk": 10,
+   "band": "healthy"
+  },
+  {
+   "row": 7,
+   "mpn": "ESP32-WROOM-32E",
+   "manufacturer": "Espressif",
+   "description": "Wi-Fi + BT module",
+   "qty": "1",
+   "refdes": "U7",
+   "category": "Wi-Fi/BT module",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "ESP32-WROOM-32E-N4 Espressif Systems | RF Transceiver Modules and Modems | DigiKey",
+     "url": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-N4/11613125"
+    },
+    {
+     "title": "ESP32-WROOM-32E-N8 Espressif Systems",
+     "url": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-N8/13159522"
+    },
+    {
+     "title": "ESP32-WROOM-32E-N4 | RF Transceiver Modules and Modems | ESPRESSIF | LCSC",
+     "url": "https://www.lcsc.com/product-detail/WiFi-Modules_Espressif-Systems-ESP32-WROOM-32E-4MB_C701341.html"
+    },
+    {
+     "title": "ESP32-WROOM-32(M103QH3200PH3Q0) Espressif Systems",
+     "url": "https://eu.mouser.com/Access?PN=356-ESP-WROOM-32"
+    },
+    {
+     "title": "ESP32-WROOM-32(M103QH6400PH3Q0) Espressif Systems",
+     "url": "https://www.mouser.com/ProductDetail/Espressif-Systems/ESP32-WROOM-32M103QH6400PH3Q0?qs=W%2FMpXkg%252BdQ6zs1wYDyC7Mw%3D%3D"
+    },
+    {
+     "title": "NOT RECOMMENDED FOR NEW DESIGNS (NRND)",
+     "url": "https://www.es.co.th/Schemetic/PDF/ESP32WROOM32U(D).PDF"
+    },
+    {
+     "title": "ESP32-WROOM-32E-N8 Espressif Systems",
+     "url": "https://www.mouser.com/ProductDetail/Espressif-Systems/ESP32-WROOM-32E-N8?qs=sGAEpiMZZMu3sxpa5v1qrkR%2F6t0IkXq84gmxxC8jME0%3D"
+    },
+    {
+     "title": "ESP32WROOM32E ESP32WROOM32UE",
+     "url": "https://www.es.co.th/Schemetic/PDF/ESP32WROOM32(U)E.PDF"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Part Status Active",
+     "quote": "Part Status  Active",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-N4/11613125",
+     "source_title": "ESP32-WROOM-32E-N4 Espressif Systems | RF Transceiver Modules and Modems | DigiKey"
+    },
+    {
+     "field": "availability",
+     "claim": "Quantity Available: 731 In Stock",
+     "quote": "Quantity Available | 731  In Stock",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-N4/11613125",
+     "source_title": "ESP32-WROOM-32E-N4 Espressif Systems | RF Transceiver Modules and Modems | DigiKey"
+    },
+    {
+     "field": "rohs",
+     "claim": "RoHS Status ROHS3 Compliant",
+     "quote": "RoHS Status  ROHS3 Compliant",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-N4/11613125",
+     "source_title": "ESP32-WROOM-32E-N4 Espressif Systems | RF Transceiver Modules and Modems | DigiKey"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Active",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The ESP32-WROOM-32E is currently active, in stock, and RoHS compliant based on distributor listings.",
+   "successor": null,
+   "unverified": [],
+   "risk": 10,
+   "band": "healthy"
+  },
+  {
+   "row": 8,
+   "mpn": "SN74HC595N",
+   "manufacturer": "TI",
+   "description": "8-bit shift register",
+   "qty": "1",
+   "refdes": "U8",
+   "category": "Logic IC",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "SN74HC595N by Texas Instruments | Counter Shift Registers",
+     "url": "https://www.arrow.com/en/products/sn74hc595n/texas-instruments.html"
+    },
+    {
+     "title": "PCN#20180329000B",
+     "url": "https://www.farnell.com/datasheets/2849455.pdf"
+    },
+    {
+     "title": "SN74HC595N Texas Instruments | Shift Registers",
+     "url": "https://www.digikey.com/en/products/detail/texas-instruments/SN74HC595N/277246"
+    },
+    {
+     "title": "Qualification of new Fab site (RFAB) using qualified ...",
+     "url": "https://www.farnell.com/datasheets/3575793.pdf"
+    },
+    {
+     "title": "12500 TI Boulevard, MS 8640, Dallas, Texas 75243 PCN# ...",
+     "url": "https://www.farnell.com/datasheets/1581617.pdf"
+    },
+    {
+     "title": "SN54HC595, SN74HC595 (Rev. G)",
+     "url": "https://static.chipdip.ru/lib/204/DOC000204453.pdf"
+    },
+    {
+     "title": "SN54HC595, SN74HC595 8-Bit Shift Registers With 3- ...",
+     "url": "https://download.mikroe.com/documents/datasheets/74HC595.pdf"
+    },
+    {
+     "title": "SN54HC595, SN74HC595 (Rev. G)",
+     "url": "https://asenergi.com/pdf/microchip/pld/sn74hc595n.pdf"
+    }
+   ],
+   "claims": [
+    {
+     "field": "rohs",
+     "claim": "EU RoHS. Compliant",
+     "quote": "SN74HC595N ; EU RoHS. Compliant ; ECCN (US). EAR99 ; Part Status. Active ; HTS. COMPONENTS ; Automotive. No",
+     "source_index": 0,
+     "url": "https://www.arrow.com/en/products/sn74hc595n/texas-instruments.html",
+     "source_title": "SN74HC595N by Texas Instruments | Counter Shift Registers"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "EU RoHS. Compliant",
+     "quote": "Part Status. Active",
+     "source_index": 0,
+     "url": "https://www.arrow.com/en/products/sn74hc595n/texas-instruments.html",
+     "source_title": "SN74HC595N by Texas Instruments | Counter Shift Registers"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Active",
+   "availability": "Unknown",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "Verified sources state: Active.",
+   "successor": null,
+   "unverified": [],
+   "risk": 15,
+   "band": "healthy"
+  },
+  {
+   "row": 9,
+   "mpn": "TPS63020DSJR",
+   "manufacturer": "TI",
+   "description": "Buck-boost converter 4A",
+   "qty": "1",
+   "refdes": "U9",
+   "category": "Power regulator",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "HIGH EFFICIENCY SINGLE INDUCTOR BUCK-BOOST ...",
+     "url": "https://datasheet.octopart.com/TPS63020DSJR-Texas-Instruments-datasheet-10253448.pdf"
+    },
+    {
+     "title": "TPS63020DSJR | Voltage Regulators - DC DC Switching Regulators | TI | LCSC",
+     "url": "https://www.lcsc.com/product-detail/DC-DC-Converters_Texas-Instruments_C15483.html"
+    },
+    {
+     "title": "TPS63020DSJR | Voltage Regulators - DC DC Switching Regulators | TI | LCSC",
+     "url": "https://www.lcsc.com/product-detail/DC-DC-Converters_TI_TPS63020DSJR_TPS63020DSJR_C15483.html"
+    },
+    {
+     "title": "TPS63020DSJR | Voltage Regulators - DC DC Switching Regulators | TI | LCSC",
+     "url": "https://www.lcsc.com/product-detail/C15483.html"
+    },
+    {
+     "title": "high efficiency single inductor buck-boost converter with 4-a ...",
+     "url": "https://datasheet.octopart.com/TPS63020DSJR-Texas-Instruments-datasheet-14167669.pdf"
+    },
+    {
+     "title": "TPS6302x High Efficiency Single Inductor Buck-Boost ...",
+     "url": "https://roboeq.ir/files/id/7869/name/TPS63020DSJR-Texas-Instruments.pdf"
+    },
+    {
+     "title": "TPS63020DSJR Datasheet(PDF) - Texas Instruments",
+     "url": "https://www.alldatasheet.com/datasheet-pdf/pdf/344716/TI/TPS63020DSJR.html"
+    },
+    {
+     "title": "TPS63020DSJR . from Texas Instruments",
+     "url": "https://www.electronicsdatasheets.com/manufacturers/texas-instruments/parts/tps63020dsjr"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "TPS63020DSJR ACTIVE",
+     "quote": "TPS63020DSJR ACTIVE VSON DSJ 14 3000 Green (RoHS & no Sb/Br) CU NIPDAU Level-1-260C-UNLIM",
+     "source_index": 0,
+     "url": "https://datasheet.octopart.com/TPS63020DSJR-Texas-Instruments-datasheet-10253448.pdf",
+     "source_title": "HIGH EFFICIENCY SINGLE INDUCTOR BUCK-BOOST ..."
+    },
+    {
+     "field": "rohs",
+     "claim": "Green (RoHS & no Sb/Br)",
+     "quote": "TPS63020DSJR ACTIVE VSON DSJ 14 3000 Green (RoHS & no Sb/Br) CU NIPDAU Level-1-260C-UNLIM",
+     "source_index": 0,
+     "url": "https://datasheet.octopart.com/TPS63020DSJR-Texas-Instruments-datasheet-10253448.pdf",
+     "source_title": "HIGH EFFICIENCY SINGLE INDUCTOR BUCK-BOOST ..."
+    },
+    {
+     "field": "availability",
+     "claim": "Farnell stock: 2,611",
+     "quote": "Farnell | TPS63020DSJR . | 2,611 | 10 | | $1.87 | $1.63 | $1.51 | $1.33 | $1.33 | Buy",
+     "source_index": 7,
+     "url": "https://www.electronicsdatasheets.com/manufacturers/texas-instruments/parts/tps63020dsjr",
+     "source_title": "TPS63020DSJR . from Texas Instruments"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Active",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The TI TPS63020DSJR is currently active, RoHS compliant, and in stock across multiple distributors.",
+   "successor": null,
+   "unverified": [],
+   "risk": 10,
+   "band": "healthy"
+  },
+  {
+   "row": 10,
+   "mpn": "W25Q32JVSSIQ",
+   "manufacturer": "Winbond",
+   "description": "32Mbit SPI NOR flash",
+   "qty": "1",
+   "refdes": "U10",
+   "category": "Flash memory",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "W25Q32JVSSIQ | Memory | Winbond | LCSC",
+     "url": "https://www.lcsc.com/product-detail/NOR-FLASH_Winbond-Elec-W25Q32JVSSIQ_C82344.html"
+    },
+    {
+     "title": "W25Q32JVSSIQ TR by Winbond Electronics | Flash",
+     "url": "https://www.arrow.com/en/products/w25q32jvssiqtr/winbond-electronics.html"
+    },
+    {
+     "title": "W25Q32JVSSIQ Winbond | Mouser Norway",
+     "url": "https://no.mouser.com/en/ProductDetail/Winbond/W25Q32JVSSIQ?qs=qSfuJ%252Bfl%2Fd4PGZSN0WxfCA%3D%3D"
+    },
+    {
+     "title": "W25Q32JV Datasheet",
+     "url": "https://docs.rs-online.com/dede/0900766b81622f8f.pdf"
+    },
+    {
+     "title": "W25Q32JVSSIQ | Memory | Winbond | LCSC",
+     "url": "https://www.lcsc.com/product-detail/C179173.html"
+    },
+    {
+     "title": "W25Q32JVSSIQ Winbond",
+     "url": "https://www.mouser.com/en/ProductDetail/Winbond/W25Q32JVSSIQ?qs=qSfuJ%252Bfl%2Fd4PGZSN0WxfCA%3D%3D"
+    },
+    {
+     "title": "Winbond Electronics Corporation",
+     "url": "https://cdn.soselectronic.com/productdata/01/75/3fec93f8/w25q32jvssiq-tr.pdf"
+    },
+    {
+     "title": "Winbond W25Q32JVSSIQ - Flash 32mb 3v Soic-8, W25q32jvssiq by Winbond | TrustClarity",
+     "url": "https://trustclarity.com/Winbond-W25Q32JVSSIQ-Flash-32mb-3v-Soic-8-W25q32jvssiq/dp/pId=422212465158503"
+    },
+    {
+     "title": "W25Q32FVSSIQ Equivalent & Substitute Parts Overview",
+     "url": "https://www.digi-electronics.com/en/part-substitute/W25Q32FVSSIQ/881416.html"
+    },
+    {
+     "title": "Winbond W25Q32JVSSIQ - Flash 32mb 3v Soic-8, W25q32jvssiq by Winbond | TrustClarity",
+     "url": "https://trustclarity.com/Winbond-W25Q32JVSSIQ-Flash-32mb-3v-Soic-8-W25q32jvssiq/dp/pId=422212465158503"
+    },
+    {
+     "title": "299-units min. Winbond Integrated Circuit 32mb Flash ...",
+     "url": "https://trustclarity.com/products/299-units-min-winbond-integrated-circuit-32mb-flash-memory-w25q32jvssiq/dp/8cac3964-6751-4335-832c-4c0a1c2c0aab"
+    },
+    {
+     "title": "Winbond W25Q32JVSSIQ Serial Flash Memory",
+     "url": "https://7setronic.com/winbond-w25q32jvssiq"
+    },
+    {
+     "title": "W25Q32JVSSIQ Datasheet, Specs, Alternatives & ECAD | Winbond Electronics Corporation | PartGenie",
+     "url": "https://www.partgenie.ai/parts/w25q32jvssiq-mfg-002673"
+    },
+    {
+     "title": "The Ultimate Guide: GigaDevice GD25Q as a Pin-to-Pin Alternative to Winbond W25Q Series - Ovaga Technologies",
+     "url": "https://www.ovaga.com/blog/nb-lot/gigadevice-gd25q-vs-winbond-w25q-alternative"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Obsolete",
+     "quote": "Part Status. Obsolete",
+     "source_index": 1,
+     "url": "https://www.arrow.com/en/products/w25q32jvssiqtr/winbond-electronics.html",
+     "source_title": "W25Q32JVSSIQ TR by Winbond Electronics | Flash"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "Scheduled for obsolescence and will be discontinued by the manufacturer",
+     "quote": "Scheduled for obsolescence and will be discontinued by the manufacturer.",
+     "source_index": 2,
+     "url": "https://no.mouser.com/en/ProductDetail/Winbond/W25Q32JVSSIQ?qs=qSfuJ%252Bfl%2Fd4PGZSN0WxfCA%3D%3D",
+     "source_title": "W25Q32JVSSIQ Winbond | Mouser Norway"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "End of Life: Scheduled for obsolescence and will be discontinued by the manufacturer",
+     "quote": "NOR Flash spiFlash, 32M-bit, End of Life: Scheduled for obsolescence and will be discontinued by the manufacturer.",
+     "source_index": 5,
+     "url": "https://www.mouser.com/en/ProductDetail/Winbond/W25Q32JVSSIQ?qs=qSfuJ%252Bfl%2Fd4PGZSN0WxfCA%3D%3D",
+     "source_title": "W25Q32JVSSIQ Winbond"
+    },
+    {
+     "field": "lifecycle",
+     "claim": "discontinue the W25Q32JV SpiFlash memory device and transition to the W25Q32RV as its designated replacement",
+     "quote": "We would like to inform you of our plan to discontinue the W25Q32JV SpiFlash memory device and transition to the W25Q32RV as its designated replacement.",
+     "source_index": 6,
+     "url": "https://cdn.soselectronic.com/productdata/01/75/3fec93f8/w25q32jvssiq-tr.pdf",
+     "source_title": "Winbond Electronics Corporation"
+    },
+    {
+     "field": "availability",
+     "claim": "In stock",
+     "quote": "1,589In stock, ships now.",
+     "source_index": 0,
+     "url": "https://www.lcsc.com/product-detail/NOR-FLASH_Winbond-Elec-W25Q32JVSSIQ_C82344.html",
+     "source_title": "W25Q32JVSSIQ | Memory | Winbond | LCSC"
+    },
+    {
+     "field": "availability",
+     "claim": "Available",
+     "quote": "Available 730",
+     "source_index": 7,
+     "url": "https://trustclarity.com/Winbond-W25Q32JVSSIQ-Flash-32mb-3v-Soic-8-W25q32jvssiq/dp/pId=422212465158503",
+     "source_title": "Winbond W25Q32JVSSIQ - Flash 32mb 3v Soic-8, W25q32jvssiq by Winbond | TrustClarity"
+    },
+    {
+     "field": "rohs",
+     "claim": "RoHS Compliant",
+     "quote": "EU RoHS. Compliant",
+     "source_index": 1,
+     "url": "https://www.arrow.com/en/products/w25q32jvssiqtr/winbond-electronics.html",
+     "source_title": "W25Q32JVSSIQ TR by Winbond Electronics | Flash"
+    },
+    {
+     "field": "rohs",
+     "claim": "RoHS Compliance",
+     "quote": "RoHS Compliance | 1 documents available",
+     "source_index": 0,
+     "url": "https://www.lcsc.com/product-detail/NOR-FLASH_Winbond-Elec-W25Q32JVSSIQ_C82344.html",
+     "source_title": "W25Q32JVSSIQ | Memory | Winbond | LCSC"
+    }
+   ],
+   "alternatives": [
+    {
+     "mpn": "GD25Q32CSIG",
+     "manufacturer": "GigaDevice",
+     "fit": "Pin-compatible",
+     "differences": "Marketed as pin-to-pin alternative. Same 32Mbit, 2.7-3.6V, SPI/Dual/Quad, SOIC-8, -40 to 85°C. Different manufacturer → different device ID (RDID), dummy clock cycles, and possibly status register layout. Firmware must handle new ID and any timing deltas.",
+     "source_index": 13,
+     "url": "https://www.ovaga.com/blog/nb-lot/gigadevice-gd25q-vs-winbond-w25q-alternative",
+     "source_title": "The Ultimate Guide: GigaDevice GD25Q as a Pin-to-Pin Alternative to Winbond W25Q Series - Ovaga Technologies"
+    },
+    {
+     "mpn": "IS25CQ032-JBLE",
+     "manufacturer": "ISSI (Integrated Silicon Solution Inc)",
+     "fit": "Pin-compatible",
+     "differences": "Cross-vendor 32Mbit SPI NOR flash in same SOIC-8 package. Wider temp range (-40 to 105°C). Page program time 4ms vs 3ms. Different device ID, register map, and command set. Firmware updates required for ID, write/erase timing, and protection bits.",
+     "source_index": 8,
+     "url": "https://www.digi-electronics.com/en/part-substitute/W25Q32FVSSIQ/881416.html",
+     "source_title": "W25Q32FVSSIQ Equivalent & Substitute Parts Overview"
+    }
+   ],
+   "lifecycle": "Obsolete",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The Winbond W25Q32JVSSIQ is obsolete per manufacturer notice but currently in stock from distributors and is RoHS compliant.",
+   "successor": null,
+   "unverified": [],
+   "risk": 95,
+   "band": "critical",
+   "recommendation": "Start with Winbond W25Q32RV — it is the manufacturer's direct successor, minimizing register and timing surprises; validate RDID and erase/program times before cutover.",
+   "alt_source_offset": 8
+  },
+  {
+   "row": 11,
+   "mpn": "LM358DR",
+   "manufacturer": "TI",
+   "description": "Dual op-amp SOIC-8",
+   "qty": "1",
+   "refdes": "U11",
+   "category": "Op-amp",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "LM358DR | DigiKey Electronics",
+     "url": "https://www.digikey.com/en/products/detail/texas-instruments/LM358DR/276658"
+    },
+    {
+     "title": "LM358DR by Texas Instruments | Operational Amplifiers",
+     "url": "https://www.arrow.com/en/products/lm358dr/texas-instruments.html"
+    },
+    {
+     "title": "12500 TI Boulevard, MS 8640, Dallas, Texas 75243",
+     "url": "https://datasheet.octopart.com/TPA6111A2DR.-Texas-Instruments-datasheet-97503482.pdf"
+    },
+    {
+     "title": "LM358DR | Instrumentation, Op Amps, Buffer Amps | TI | LCSC",
+     "url": "https://www.lcsc.com/product-detail/C5423.html"
+    },
+    {
+     "title": "12500 TI Boulevard, MS 8640, Dallas, Texas 75243 PCN# ...",
+     "url": "https://www.farnell.com/datasheets/3929918.pdf"
+    },
+    {
+     "title": "LM358DR datasheet(37/62 Pages) TI1 | Industry-Standard Dual Operational Amplifiers",
+     "url": "https://www.alldatasheet.com/html-pdf/1732007/TI1/LM358DR/2546/37/LM358DR.html"
+    },
+    {
+     "title": "ROHM Semiconductor LM358DR Alternatives & Cross-References",
+     "url": "https://parter.ai/alternatives/rohm-semiconductor/lm358dr"
+    },
+    {
+     "title": "Texas Instruments - LM358DR",
+     "url": "https://www.zeanoelec.com/detail/LM358DR/3688203.html"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Active",
+     "quote": "Part Status\nActive",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/texas-instruments/LM358DR/276658",
+     "source_title": "LM358DR | DigiKey Electronics"
+    },
+    {
+     "field": "availability",
+     "claim": "In stock",
+     "quote": "1,083. In stock.",
+     "source_index": 1,
+     "url": "https://www.arrow.com/en/products/lm358dr/texas-instruments.html",
+     "source_title": "LM358DR by Texas Instruments | Operational Amplifiers"
+    },
+    {
+     "field": "rohs",
+     "claim": "Compliant",
+     "quote": "RoHS Status\nROHS3 Compliant",
+     "source_index": 0,
+     "url": "https://www.digikey.com/en/products/detail/texas-instruments/LM358DR/276658",
+     "source_title": "LM358DR | DigiKey Electronics"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Active",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The TI LM358DR is currently active, in stock from multiple distributors, and RoHS compliant.",
+   "successor": null,
+   "unverified": [],
+   "risk": 10,
+   "band": "healthy"
+  },
+  {
+   "row": 12,
+   "mpn": "DS3231SN#",
+   "manufacturer": "Analog Devices",
+   "description": "Precision RTC with TCXO",
+   "qty": "1",
+   "refdes": "U12",
+   "category": "RTC",
+   "is_generic": false,
+   "sources": [
+    {
+     "title": "DS3231SN# Analog Devices - Real Time Clocks - Distributors, Price Comparison, and Datasheets | Octopart component search",
+     "url": "https://octopart.com/part/analog-devices/DS3231SN%23T&R"
+    },
+    {
+     "title": "DS3231SN# Analog Devices / Maxim Integrated",
+     "url": "https://my.mouser.com/ProductDetail/Analog-Devices-Maxim-Integrated/DS3231SN?qs=1eQvB6Dk1vhUlr8%2FOrV0Fw%3D%3D"
+    },
+    {
+     "title": "DS3231SN#T&R Analog Devices / Maxim Integrated",
+     "url": "https://my.mouser.com/ProductDetail/Analog-Devices-Maxim-Integrated/DS3231SNTR?qs=1eQvB6Dk1vhN%252BEOl3KU%252Bjw%3D%3D"
+    },
+    {
+     "title": "DS3231SN# ANALOG DEVICES, RTC, TCXO, CRYSTAL | Newark ...",
+     "url": "https://mexico.newark.com/en-MX/analog-devices/ds3231sn/rtc-tcxo-cristal-3-3v-16soic/dp/81Y9084"
+    },
+    {
+     "title": "DS3231SN# Analog Devices / Maxim Integrated",
+     "url": "https://www.mouser.com/en/ProductDetail/Analog-Devices-Maxim-Integrated/DS3231SN?qs=1eQvB6Dk1vhUlr8%2FOrV0Fw%3D%3D"
+    },
+    {
+     "title": "The DS3231 is dead, long live the DS3231#! – Pete's Blog & Miscellaneous Musings",
+     "url": "https://blog.heypete.com/2020/09/27/the-ds3231-is-dead-long-live-the-ds3231"
+    },
+    {
+     "title": "DS3231SN Real Time Clock: CAD Models, Datasheet, Features [Video&FAQ]",
+     "url": "https://www.kynix.com/components/ds3231sn-real-time-clock-cad-models-datasheet-features.html"
+    },
+    {
+     "title": "DS3231SN# Analog Devices | Real Time Clocks | Xecor",
+     "url": "https://www.xecor.com/product/ds3231sn-"
+    }
+   ],
+   "claims": [
+    {
+     "field": "lifecycle",
+     "claim": "Production",
+     "quote": "Manufacturer Lifecycle Status PRODUCTION (Last Updated: 7 hours ago)",
+     "source_index": 0,
+     "url": "https://octopart.com/part/analog-devices/DS3231SN%23T&R",
+     "source_title": "DS3231SN# Analog Devices - Real Time Clocks - Distributors, Price Comparison, and Datasheets | Octopart component search"
+    },
+    {
+     "field": "availability",
+     "claim": "In Stock: 5,921",
+     "quote": "In Stock:**5,921** DS3231SN# is a high-quality Real Time Clocks from Analog Devices",
+     "source_index": 7,
+     "url": "https://www.xecor.com/product/ds3231sn-",
+     "source_title": "DS3231SN# Analog Devices | Real Time Clocks | Xecor"
+    },
+    {
+     "field": "rohs",
+     "claim": "RoHS Compliant",
+     "quote": "RoHS | Details",
+     "source_index": 7,
+     "url": "https://www.xecor.com/product/ds3231sn-",
+     "source_title": "DS3231SN# Analog Devices | Real Time Clocks | Xecor"
+    }
+   ],
+   "alternatives": [],
+   "lifecycle": "Active",
+   "availability": "In stock",
+   "rohs": "Compliant",
+   "confidence": "high",
+   "summary": "The Analog Devices DS3231SN# is an active, RoHS-compliant real-time clock currently in stock with multiple distributors.",
+   "successor": null,
+   "unverified": [],
+   "risk": 10,
+   "band": "healthy"
+  },
+  {
+   "row": 13,
+   "mpn": "",
+   "manufacturer": "",
+   "description": "10k 0603 1% resistor",
+   "qty": "4",
+   "refdes": "R1,R2,R3,R4",
+   "category": "Resistor",
+   "is_generic": true,
+   "sources": [],
+   "claims": [],
+   "alternatives": [],
+   "lifecycle": "Generic",
+   "availability": "Multi-source",
+   "rohs": "Unknown",
+   "confidence": "high",
+   "summary": "Generic passive with many interchangeable sources; low single-source risk.",
+   "risk": 5,
+   "band": "healthy",
+   "successor": null
+  },
+  {
+   "row": 14,
+   "mpn": "",
+   "manufacturer": "",
+   "description": "100nF 0603 X7R capacitor",
+   "qty": "6",
+   "refdes": "C1,C2,C3,C4,C5,C6",
+   "category": "Capacitor",
+   "is_generic": true,
+   "sources": [],
+   "claims": [],
+   "alternatives": [],
+   "lifecycle": "Generic",
+   "availability": "Multi-source",
+   "rohs": "Unknown",
+   "confidence": "high",
+   "summary": "Generic passive with many interchangeable sources; low single-source risk.",
+   "risk": 5,
+   "band": "healthy",
+   "successor": null
+  }
+ ]
+}
