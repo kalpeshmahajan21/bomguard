@@ -2,58 +2,91 @@
 
 **Find the dead parts in your bill of materials before your production run does.**
 
-Upload a BOM CSV. An agent checks every part against the live web for lifecycle, stock and RoHS status, finds replacements for the risky ones, and writes a briefing on what to fix first. Every claim links to the page it came from.
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track).
+**Live demo:** https://bomguard.onrender.com · **[Open the example report instantly](https://bomguard.onrender.com/?example)**
+
+Upload a BOM CSV. An agent checks every part against the live web for lifecycle, stock and RoHS status, finds replacements for the risky ones, and writes a briefing on what to fix first. Every claim links to the page it came from, and the main table shows the quote behind each verdict.
+
+Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track), on NVIDIA Nemotron via Nebius Token Factory, with Tavily for live research.
+
+![BOMGuard home page](docs/home.png)
+
+> The live demo runs on a free instance that sleeps when idle, so the first visit can take about 50 seconds to wake up. The example report is a saved live run and loads in about a second; a full live scan of the sample BOM takes 30–60 seconds.
 
 ## The problem
 
 A hardware product is built from 50–300 parts. If one of them goes end-of-life or out of stock after the design is frozen, the team faces a board respin, a delayed launch and broker prices with counterfeit risk. Large companies pay for enterprise component-intelligence tools. Startups, small manufacturers and student teams check distributor pages by hand, one part at a time, and still miss things.
 
-BOMGuard does that check in minutes, for the whole BOM, with sources.
+BOMGuard does that check in about a minute, for the whole BOM, with sources.
+
+## What it finds
+
+On the sample drone flight-controller BOM (`samples/flight_controller_bom.csv`), a live run reads 135 sources from 32 searches:
+
+![Report summary](docs/report.png)
+
+| Part | Result | Evidence shown in the table |
+|---|---|---|
+| MPU-6050 (IMU) | **Obsolete** | DigiKey: "Part Status Obsolete" |
+| BMP180 (pressure sensor) | **Obsolete**, out of stock | DigiKey: "Part Status. Obsolete" |
+| W25Q32JVSSIQ (flash) | **Obsolete**, replacements GD25Q32CSIG, IS25CQ032 | Arrow: "Part Status. Obsolete" |
+| HMC5883L (magnetometer) | **Obsolete**, replacement QMC5883L (pin-compatible) | "…this part will not be available for shipment." |
+| ATMEGA328P-AU (MCU) | **NRND** | Matches Microchip's own product page |
+| CP2102-GMR (USB-UART) | **Unknown**: sources disagree | DigiKey says NRND, Arrow says Active |
+| 6 other ICs | Active | DigiKey / Arrow / Octopart status fields |
+
+![Parts table with the evidence behind each lifecycle verdict](docs/parts-table.png)
+
+Click any row to see every claim with its source link, the replacements with what an engineer must check, and every page that was read.
 
 ## How it works
 
 ```
-BOM CSV ─▶ Nemotron Nano ─▶ Tavily search ─▶ Nemotron Super ─▶ risk score ─▶ (risky?) Tavily search ─▶ Nemotron Ultra ─▶ briefing
-          clean rows         live web per part   cited facts       arithmetic       find successors          judge fit, write brief
+BOM CSV ─▶ Nemotron Nano ─▶ Tavily search ─▶ Nemotron Super ─▶ verify + score ─▶ (risky?) Tavily ─▶ Nemotron Ultra ─▶ briefing
+          clean rows         live web per part   cited facts       in plain code         find successors   judge fit, write brief
 ```
 
 | Step | Model / tool | Why this tier |
 |---|---|---|
-| Clean the BOM | **Nemotron 3 Nano** (`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`) | One cheap, fast call per 40 rows. Normalizes manufacturer names, assigns categories, flags generic passives so no searches are wasted on a 10k resistor. |
-| Research each part | **Tavily** search (advanced) | Manufacturer pages, distributors and notices for lifecycle, stock and compliance. |
-| Extract facts | **Nemotron 3 Super** (`nvidia/nemotron-3-super-120b-a12b`) | Many parallel calls that need accurate reading of messy web text. Every claim must cite a source index; uncited claims are dropped in code. "Unknown" is a valid answer. |
+| Clean the BOM | **Nemotron 3 Nano** (`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`) | One cheap, fast call per 40 rows. Normalizes manufacturer names, assigns categories, and flags generic passives so no searches are wasted on a 10k resistor. |
+| Research each part | **Tavily** advanced search | Two parallel searches per part: distributor product pages (DigiKey, Mouser, Octopart, Arrow, LCSC, Farnell…) and EOL/NRND/PCN notices. |
+| Extract facts | **Nemotron 3 Super** (`nvidia/nemotron-3-super-120b-a12b`) | Many parallel calls that need careful reading of messy web text. Every fact must come with an exact quote and the index of the source it came from. |
 | Find replacements | **Tavily** + **Nemotron 3 Ultra** (`nvidia/Nemotron-3-Ultra-550b-a55b`) | Only for parts scoring 50+. Ultra judges each candidate as drop-in, pin-compatible or functional (PCB change) and lists what an engineer must check. |
 | Briefing | **Tavily news** + **Nemotron 3 Ultra** | Recent supply-chain news for the riskiest vendors, plus a prioritized action list. |
 
-Design choices that make results trustworthy:
+### Why you can trust the results
 
-- **The model reports facts; code does the math.** The risk score is plain arithmetic on lifecycle, stock and RoHS (`app/agent.py: score`), so every number is explainable.
-- **No source, no claim.** Claims that don't point at a retrieved page are discarded, and a part with no surviving citations is marked low confidence.
-- **Replacements must appear in the sources.** Ultra may not invent part numbers.
-- **Credits are spent where risk is.** Generic passives are skipped, the alternatives search only runs for risky parts, and results are cached on disk.
+A wrong "Obsolete" in front of an engineer is worse than an honest "Unknown". So the model reports facts with quotes, and plain code decides what survives (`app/agent.py`):
 
-The UI shows live usage per tier (calls, tokens) and Tavily searches/sources, streamed over Server-Sent Events as each part finishes.
+- **The quote must really be on the page.** A claim is kept only if its source was actually retrieved, mentions this part family, and contains the quoted text.
+- **Datasheet legends are not evidence.** TI datasheets define every status code ("NRND: Not recommended for new designs…"). Quoting that definition says nothing about this part, so it is filtered out, with or without its label.
+- **The quotes overrule the model.** If the model says NRND but its only verified quote says "Part Status: Active", the answer is Active.
+- **Better sources win.** A quote from the manufacturer's own site decides. Distributor status fields can lag behind the manufacturer (DigiKey still lists the ATmega328P as Active; Microchip says NRND), so without a manufacturer quote, any Active-vs-at-risk disagreement becomes **Unknown, sources disagree**.
+- **The score is arithmetic, not opinion.** Risk = lifecycle points + stock points + RoHS points (`score()`), so every number can be explained. Unknown always lands in "to watch", never "healthy".
+- **Replacements must appear in the sources.** Ultra may not invent part numbers, and package or reel variants of the same chip are filtered out.
+- **Untrusted text stays text.** Everything from the web or a model is escaped before it reaches the page.
 
-## Where Nebius Token Factory helped
+The UI shows live usage per Nemotron tier (calls, tokens) and Tavily searches and sources, streamed over Server-Sent Events as each part finishes.
 
-All model calls go through Token Factory's OpenAI-compatible endpoint, so one client serves three Nemotron sizes. Parts are researched in parallel (`CONCURRENCY`, default 6), and Token Factory's throughput keeps a 15-part BOM to roughly a minute end to end.
+## How Nebius Token Factory and NVIDIA Nemotron are used
+
+All model calls go through Token Factory's OpenAI-compatible endpoint, so one client serves three Nemotron sizes, each matched to its job: Nano for bulk cleanup, Super for many parallel extractions, Ultra only where judgment matters (replacements and the briefing). On the sample BOM a run uses 19 calls and about 117k tokens. Parts are researched in parallel (`CONCURRENCY`, default 6).
 
 ## Run it
 
 Requires Python 3.11+.
 
 ```bash
-git clone <this repo> && cd bomguard
+git clone https://github.com/kalpeshmahajan21/bomguard && cd bomguard
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env        # then paste your NEBIUS_API_KEY and TAVILY_API_KEY
-python scripts/check_setup.py   # verifies keys and lists the Nemotron IDs on your account
+python scripts/check_setup.py   # checks keys and lists the Nemotron IDs on your account
 uvicorn app.main:app --reload
 ```
 
-Open http://localhost:8000 and click **Check the sample drone flight-controller BOM**, or drop in your own CSV.
+Open http://localhost:8000 and click **Check the sample drone flight-controller BOM**, or drop in your own CSV. On Windows, `run.bat` does the setup and start in one step.
 
 No keys yet? `MOCK=1 uvicorn app.main:app` runs the full UI with clearly labelled demo data.
 
@@ -61,31 +94,43 @@ No keys yet? `MOCK=1 uvicorn app.main:app` runs the full UI with clearly labelle
 
 Any CSV with a header row and a part-number column. Recognized headers include `MPN`, `Manufacturer Part Number`, `Mfr Part #`, `Manufacturer`, `Description`/`Value`, `Qty`, `Designator`/`Reference`. KiCad, Altium and Eagle exports work as-is.
 
-### Docker
+### Deploy
+
+`render.yaml` deploys to [Render](https://render.com) as a Docker web service: create a Blueprint from this repo and paste your two API keys. Or with Docker anywhere:
 
 ```bash
 docker build -t bomguard . && docker run -p 8000:8000 --env-file .env bomguard
 ```
 
+Sessions are kept in memory, so run a single instance.
+
+## Limitations
+
+- **Results depend on what the web search returns.** If the manufacturer's page isn't among the results, BOMGuard relies on distributors, which can lag. When they disagree it says so instead of guessing.
+- Some evidence comes from secondary sites (blogs, parts brokers). The site name is shown next to every quote so you can judge it.
+- Stock is a snapshot from distributor pages, not a live inventory feed.
+
 ## Project layout
 
 ```
-app/main.py       FastAPI routes, SSE stream, CSV/Markdown report export
+app/main.py       FastAPI routes, SSE stream, example report, CSV/Markdown export
 app/bom.py        CSV parsing, header detection, Nemotron Nano normalization
-app/agent.py      per-part pipeline, scoring, Ultra alternatives + briefing
+app/agent.py      per-part pipeline, claim verification, lifecycle rules, scoring, Ultra alternatives + briefing
 app/research.py   Tavily search wrappers with disk cache
 app/llm.py        Token Factory client, JSON extraction, per-tier usage counters
 app/mock.py       demo-data mode for UI work without keys
 static/           front end (vanilla HTML/CSS/JS)
-samples/          example BOM
+samples/          example BOM and a saved live run (example_report.json)
+render.yaml       one-click Render deploy
 ```
 
 ## Roadmap
 
-- Scheduled re-scans of released BOMs with Nebius Serverless Jobs, and alerts when a part's status changes
+- Search each manufacturer's own site per part, so the strongest evidence is always in the sources
+- Scheduled re-scans of released BOMs with Nebius Serverless Jobs, with alerts when a part's status changes
 - Direct KiCad/Altium plugin
 - Cross-checking stock and price across distributors
 
 ## License
 
-MIT
+[MIT](LICENSE)

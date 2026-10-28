@@ -32,6 +32,8 @@ drop.addEventListener("drop", (ev) => { const f = ev.dataTransfer.files[0]; if (
 $("#file").addEventListener("change", (ev) => { const f = ev.target.files[0]; if (f) start({ file: f }); });
 $("#run-sample").addEventListener("click", () => start({ sample: true }));
 $("#show-example").addEventListener("click", showExample);
+// A shareable link straight to the example report: /?example
+if (new URLSearchParams(location.search).has("example")) showExample();
 
 // A saved live run, rendered through the same code a live scan uses, so judges see a full report instantly.
 async function showExample() {
