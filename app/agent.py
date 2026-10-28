@@ -21,6 +21,13 @@ def band(s: int) -> str:
     return "critical" if s >= 75 else "watch" if s >= 45 else "healthy"
 
 
+def _why(e: Exception) -> str:
+    """Short reason for a failed model call. Out-of-credit gets a plain explanation, since it fails every part."""
+    if getattr(e, "status_code", None) == 402:
+        return "Nebius Token Factory credit is used up"
+    return type(e).__name__
+
+
 def _sources_block(sources: list[dict]) -> str:
     return "\n\n".join(f"[{i}] {s['title']}\nURL: {s['url']}\n{s['content']}" for i, s in enumerate(sources))
 
@@ -76,8 +83,10 @@ _QUOTE_STATUS = [
     ("NRND", re.compile(r"not recommended|not for new design|\bnrnd\b", re.I)),
     ("Last Time Buy", re.compile(r"last[- ]time[- ]buy|\blifebuy\b|\bltb\b|last buy", re.I)),
     ("EOL", re.compile(r"end[- ]of[- ]life|\beol\b", re.I)),
-    ("Obsolete", re.compile(r"obsolete|discontinued|out of production|no longer (manufactured|produced|in production)", re.I)),
-    ("Active", re.compile(r"\bactive\b|in production|\bproduction\b", re.I)),
+    ("Obsolete", re.compile(r"obsolete|discontinued|out of production|no longer (manufactured|produced|in production)|"
+                            r"will not be available for shipment", re.I)),
+    # "status" prefix: Octopart writes "Lifecycle StatusACTIVE" with no space.
+    ("Active", re.compile(r"(?:\b|status)active\b|in production|\bproduction\b", re.I)),
 ]
 
 
@@ -154,6 +163,55 @@ def reconcile_lifecycle(verdict: str, claims: list[dict], manufacturer: str = ""
     if len(stated) == 1:
         return next(iter(stated))
     return verdict if verdict in stated else "Unknown"
+
+
+_SITE_NAMES = {"digikey": "DigiKey", "mouser": "Mouser", "octopart": "Octopart", "arrow": "Arrow", "lcsc": "LCSC",
+               "farnell": "Farnell", "newark": "Newark", "rs-online": "RS", "findchips": "FindChips", "avnet": "Avnet",
+               "tme": "TME"}
+
+
+def _site_label(url: str, manufacturer: str) -> str:
+    if source_tier(url, manufacturer) == 3:
+        return manufacturer
+    labels = _host_labels(url)
+    for lab in labels:
+        if lab in _SITE_NAMES:
+            return _SITE_NAMES[lab]
+    host = ".".join(labels)
+    return host[4:] if host.startswith("www.") else host
+
+
+def _snippet(quote: str, status: str, limit: int = 50) -> str:
+    """The shortest piece of a verified quote that still states the status (it stays a substring of the quote)."""
+    q = " ".join((quote or "").split())
+    m = _STATUS_FIELD.search(q)
+    if m and quote_status(m.group(0)) == status:
+        return m.group(0).strip()
+    if len(q) <= limit:
+        return q
+    rx = dict(_QUOTE_STATUS).get(status)
+    hit = rx.search(q) if rx else None
+    # Start a few words before the status phrase so the table's two-line clip still shows it.
+    center = hit.start() if hit else 0
+    start = max(0, center - 15)
+    start = q.rfind(" ", 0, start) + 1 if start else 0
+    end = min(len(q), start + limit)
+    end = q.find(" ", end) if q.find(" ", end) != -1 else len(q)
+    return ("…" if start else "") + q[start:end].strip() + ("…" if end < len(q) else "")
+
+
+def pick_evidence(lifecycle: str, claims: list[dict], manufacturer: str) -> dict | None:
+    """The single best verified quote behind the lifecycle verdict, for the main table:
+    it must state the same status; manufacturer beats distributor beats anything else."""
+    if lifecycle in ("Unknown", "Generic"):
+        return None
+    cands = [c for c in claims if c.get("field") == "lifecycle" and quote_status(c.get("quote", "")) == lifecycle]
+    if not cands:
+        return None
+    best = max(cands, key=lambda c: (source_tier(c.get("url", ""), manufacturer),
+                                     bool(_STATUS_FIELD.search(c.get("quote", ""))), -len(c.get("quote", ""))))
+    return {"site": _site_label(best.get("url", ""), manufacturer),
+            "quote": _snippet(best.get("quote", ""), lifecycle), "url": best.get("url", "")}
 
 
 def verify_claims(items: list[dict], sources: list[dict], fam: str) -> list[dict]:
@@ -262,7 +320,7 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
         )
     except Exception as e:
         facts = {"lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
-                 "summary": f"Could not extract facts automatically ({type(e).__name__}). Check sources manually.",
+                 "summary": f"Could not extract facts automatically ({_why(e)}). Check sources manually.",
                  "claims": [], "successor": None}
 
     for k, allowed in (("lifecycle", LIFECYCLES), ("availability", list(AVAIL_RISK)), ("rohs", ["Compliant", "Non-compliant", "Unknown"])):
@@ -303,7 +361,7 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
     result.update(
         lifecycle=facts["lifecycle"], availability=facts["availability"], rohs=facts["rohs"],
         confidence=confidence, summary=summary, claims=claims, successor=successor,
-        unverified=dropped,
+        unverified=dropped, evidence=pick_evidence(facts["lifecycle"], claims, mfr),
     )
     result["risk"] = score(result)
     result["band"] = band(result["risk"])
@@ -330,7 +388,7 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
             ][:3]
             result["recommendation"] = alts.get("recommendation", "")
         except Exception as e:
-            result["recommendation"] = f"Alternative search failed ({type(e).__name__})."
+            result["recommendation"] = f"Alternative search failed ({_why(e)})."
         result["sources"] = all_sources
         result["alt_source_offset"] = base
     return result
@@ -372,5 +430,5 @@ async def brief(results: list[dict], usage: llm.Usage, stats: research.TavilySta
                    next_steps=b.get("next_steps", [])[:5], market_notes=_cite(
                        [{"claim": n.get("note"), "source_index": n.get("source_index")} for n in b.get("market_notes", [])], news))
     except Exception as e:
-        out["headline"] = f"Briefing unavailable ({type(e).__name__}); see per-part results."
+        out["headline"] = f"Briefing unavailable ({_why(e)}); see per-part results."
     return out

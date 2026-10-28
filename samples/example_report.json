@@ -356,7 +356,12 @@
    "risk": 55,
    "band": "watch",
    "recommendation": "Choose ATMEGA328PB-AU for new designs—it is the actively maintained successor with more peripherals and no NRND flag, but budget firmware migration effort for the new device signature and peripheral register map.",
-   "alt_source_offset": 8
+   "alt_source_offset": 8,
+   "evidence": {
+    "site": "wevolver.com",
+    "quote": "…product status as \"Not Recommended for new designs.\"",
+    "url": "https://www.wevolver.com/article/atmega328p-pinout-registers-fuses-and-arduino-pin-mapping"
+   }
   },
   {
    "row": 2,
@@ -514,7 +519,12 @@
    "risk": 95,
    "band": "critical",
    "recommendation": "Start with ICM-42670-P as TDK's named alternate for MPU-6050, but plan a full PCB respin and driver rewrite since no candidate preserves footprint, pinout, or register map.",
-   "alt_source_offset": 8
+   "alt_source_offset": 8,
+   "evidence": {
+    "site": "DigiKey",
+    "quote": "Part Status Obsolete",
+    "url": "https://www.digikey.com/en/products/detail/tdk-invensense/MPU-6050/4038009"
+   }
   },
   {
    "row": 3,
@@ -640,7 +650,12 @@
    "risk": 100,
    "band": "critical",
    "recommendation": "Choose QMC5883L for fastest migration — it shares the HMC5883L footprint and I2C interface, so only a library change is needed, and it is widely available at low cost.",
-   "alt_source_offset": 8
+   "alt_source_offset": 8,
+   "evidence": {
+    "site": "ic-components.al",
+    "quote": "…2016, this part will not be available for shipment.",
+    "url": "https://www.ic-components.al/files/ad/HMC5883L-TR.pdf"
+   }
   },
   {
    "row": 4,
@@ -754,7 +769,12 @@
    "risk": 100,
    "band": "critical",
    "recommendation": "No currently orderable alternative parts are named in the provided sources; the pages only describe the obsolete BMP180, its predecessor BMP085, and a discontinued DFRobot module, without identifying any replacement devices.",
-   "alt_source_offset": 8
+   "alt_source_offset": 8,
+   "evidence": {
+    "site": "DigiKey",
+    "quote": "Part Status. Obsolete",
+    "url": "https://www.digikey.com/en/products/detail/bosch-sensortec/BMP180/2688259"
+   }
   },
   {
    "row": 5,
@@ -834,7 +854,8 @@
    "successor": null,
    "unverified": [],
    "risk": 45,
-   "band": "watch"
+   "band": "watch",
+   "evidence": null
   },
   {
    "row": 6,
@@ -914,7 +935,12 @@
    "successor": null,
    "unverified": [],
    "risk": 10,
-   "band": "healthy"
+   "band": "healthy",
+   "evidence": {
+    "site": "DigiKey",
+    "quote": "Part Status. Active",
+    "url": "https://www.digikey.com/en/products/detail/shenzhen-slkormicro-semicon-co-ltd/AMS1117-3-3-SOT-223/21853079"
+   }
   },
   {
    "row": 7,
@@ -994,7 +1020,12 @@
    "successor": null,
    "unverified": [],
    "risk": 10,
-   "band": "healthy"
+   "band": "healthy",
+   "evidence": {
+    "site": "DigiKey",
+    "quote": "Part Status Active",
+    "url": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-WROOM-32E-N4/11613125"
+   }
   },
   {
    "row": 8,
@@ -1066,7 +1097,12 @@
    "successor": null,
    "unverified": [],
    "risk": 15,
-   "band": "healthy"
+   "band": "healthy",
+   "evidence": {
+    "site": "Arrow",
+    "quote": "Part Status. Active",
+    "url": "https://www.arrow.com/en/products/sn74hc595n/texas-instruments.html"
+   }
   },
   {
    "row": 9,
@@ -1146,7 +1182,12 @@
    "successor": null,
    "unverified": [],
    "risk": 10,
-   "band": "healthy"
+   "band": "healthy",
+   "evidence": {
+    "site": "Octopart",
+    "quote": "TPS63020DSJR ACTIVE VSON DSJ 14 3000 Green (RoHS &…",
+    "url": "https://datasheet.octopart.com/TPS63020DSJR-Texas-Instruments-datasheet-10253448.pdf"
+   }
   },
   {
    "row": 10,
@@ -1311,7 +1352,12 @@
    "risk": 95,
    "band": "critical",
    "recommendation": "Start with Winbond W25Q32RV — it is the manufacturer's direct successor, minimizing register and timing surprises; validate RDID and erase/program times before cutover.",
-   "alt_source_offset": 8
+   "alt_source_offset": 8,
+   "evidence": {
+    "site": "Arrow",
+    "quote": "Part Status. Obsolete",
+    "url": "https://www.arrow.com/en/products/w25q32jvssiqtr/winbond-electronics.html"
+   }
   },
   {
    "row": 11,
@@ -1391,7 +1437,12 @@
    "successor": null,
    "unverified": [],
    "risk": 10,
-   "band": "healthy"
+   "band": "healthy",
+   "evidence": {
+    "site": "DigiKey",
+    "quote": "Part Status Active",
+    "url": "https://www.digikey.com/en/products/detail/texas-instruments/LM358DR/276658"
+   }
   },
   {
    "row": 12,
@@ -1471,7 +1522,12 @@
    "successor": null,
    "unverified": [],
    "risk": 10,
-   "band": "healthy"
+   "band": "healthy",
+   "evidence": {
+    "site": "Octopart",
+    "quote": "Lifecycle Status PRODUCTION",
+    "url": "https://octopart.com/part/analog-devices/DS3231SN%23T&R"
+   }
   },
   {
    "row": 13,
@@ -1492,7 +1548,8 @@
    "summary": "Generic passive with many interchangeable sources; low single-source risk.",
    "risk": 5,
    "band": "healthy",
-   "successor": null
+   "successor": null,
+   "evidence": null
   },
   {
    "row": 14,
@@ -1513,7 +1570,8 @@
    "summary": "Generic passive with many interchangeable sources; low single-source risk.",
    "risk": 5,
    "band": "healthy",
-   "successor": null
+   "successor": null,
+   "evidence": null
   }
  ]
 }
