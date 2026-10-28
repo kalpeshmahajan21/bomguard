@@ -63,6 +63,7 @@ A wrong "Obsolete" in front of an engineer is worse than an honest "Unknown". So
 - **Datasheet legends are not evidence.** TI datasheets define every status code ("NRND: Not recommended for new designs…"). Quoting that definition says nothing about this part, so it is filtered out, with or without its label.
 - **The quotes overrule the model.** If the model says NRND but its only verified quote says "Part Status: Active", the answer is Active.
 - **Better sources win.** A quote from the manufacturer's own site decides. Distributor status fields can lag behind the manufacturer (DigiKey still lists the ATmega328P as Active; Microchip says NRND), so without a manufacturer quote, any Active-vs-at-risk disagreement becomes **Unknown, sources disagree**.
+- **Secondary sources count for less.** If only blogs or broker pages back a verdict (not a manufacturer page or a distributor status field), confidence drops to medium when two or more sites agree, and low when only one does.
 - **The score is arithmetic, not opinion.** Risk = lifecycle points + stock points + RoHS points (`score()`), so every number can be explained. Unknown always lands in "to watch", never "healthy".
 - **Replacements must appear in the sources.** Ultra may not invent part numbers, and package or reel variants of the same chip are filtered out.
 - **Untrusted text stays text.** Everything from the web or a model is escaped before it reaches the page.
