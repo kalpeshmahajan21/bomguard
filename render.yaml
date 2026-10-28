@@ -1,0 +1,26 @@
+# One-click Render deploy. Keys are asked for in the Render dashboard (sync: false), never stored here.
+services:
+  - type: web
+    name: bomguard
+    runtime: docker
+    plan: free
+    numInstances: 1          # sessions live in memory: keep a single instance
+    healthCheckPath: /api/config
+    autoDeploy: true
+    envVars:
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: NEBIUS_BASE_URL
+        value: https://api.tokenfactory.nebius.com/v1/
+      - key: MODEL_FAST
+        value: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+      - key: MODEL_EXTRACT
+        value: nvidia/nemotron-3-super-120b-a12b
+      - key: MODEL_REASON
+        value: nvidia/Nemotron-3-Ultra-550b-a55b
+      - key: CONCURRENCY
+        value: "6"
+      - key: MOCK
+        value: "0"
