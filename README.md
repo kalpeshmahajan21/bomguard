@@ -14,6 +14,12 @@ Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track), 
 
 > The home page opens on a saved report from a real live run, so judges see the full result instantly and it costs nothing to show. Live scans on the public demo need an access code (ask me, or run it yourself with your own keys, below) and are capped at 30 rows per BOM and 20 scans a day. The free instance sleeps when idle, so the first visit can take about 50 seconds to wake up; a live scan of the sample BOM takes 30–60 seconds.
 
+## How to test
+
+1. Open **https://bomguard.onrender.com**. It opens on a saved report from a real live run, so you can explore it straight away (click any part for its sources). The first visit may take about 50 seconds while the free instance wakes up.
+2. To run a live scan, enter the access code **`[ACCESS CODE]`** above the copper button.
+3. Click **Check the sample drone flight-controller BOM**, or drop in one of the files from [`samples/demo/`](samples/demo) (KiCad, Eagle and a hand-made list). A scan takes 20–60 seconds.
+
 ## The problem
 
 A hardware product is built from 50–300 parts. If one of them goes end-of-life or out of stock after the design is frozen, the team faces a board respin, a delayed launch and broker prices with counterfeit risk. Large companies pay for enterprise component-intelligence tools. Startups, small manufacturers and student teams check distributor pages by hand, one part at a time, and still miss things.
@@ -22,23 +28,23 @@ BOMGuard does that check in about a minute, for the whole BOM, with sources.
 
 ## What it finds
 
-On the sample drone flight-controller BOM (`samples/flight_controller_bom.csv`), a live run reads 135 sources from 32 searches:
+A real live run on `samples/demo/kicad_export.csv`, an unedited KiCad BOM export (27 seconds):
 
 ![Report summary](docs/report.png)
 
 | Part | Result | Evidence shown in the table |
 |---|---|---|
-| MPU-6050 (IMU) | **Obsolete** | DigiKey: "Part Status Obsolete" |
-| BMP180 (pressure sensor) | **Obsolete**, out of stock | DigiKey: "Part Status. Obsolete" |
-| W25Q32JVSSIQ (flash) | **Obsolete**, replacements GD25Q32CSIG, IS25CQ032 | Arrow: "Part Status. Obsolete" |
-| HMC5883L (magnetometer) | **Obsolete**, replacement QMC5883L (pin-compatible) | "…this part will not be available for shipment." |
-| ATMEGA328P-AU (MCU) | **NRND** | Matches Microchip's own product page |
-| CP2102-GMR (USB-UART) | **Unknown**: sources disagree | DigiKey says NRND, Arrow says Active |
-| 6 other ICs | Active | DigiKey / Arrow / Octopart status fields |
+| BMP180 (pressure sensor) | **Obsolete**, out of stock; alternatives BME280, BMP390 | DigiKey: "Part Status Obsolete" |
+| FT232RL-REEL (USB-UART) | **Obsolete**; FT232RNL-REEL suggested as drop-in | DigiKey: "FT232RL-REEL is Obsolete and no longer manufactured."; Octopart agrees |
+| LM2596S-5.0/NOPB (regulator) | **Unknown**, low confidence | Only one datasheet-mirror page gave a status, so it is not trusted |
+| STM32F103C8T6, ADXL345BCCZ, MCP2515 | Active | Arrow / DigiKey "Part Status" fields |
+| 100nF, 10k | Generic, skipped | No searches spent on passives |
 
 ![Parts table with the evidence behind each lifecycle verdict](docs/parts-table.png)
 
 Click any row to see every claim with its source link, the replacements with what an engineer must check, and every page that was read.
+
+The other demo files show the same behaviour: the Eagle export (semicolon-separated) flags MPU-6050 and HMC5883L as obsolete, and the hand-made part list with no manufacturer column checks out as active. Across every run we have done, MPU-6050, BMP180, HMC5883L and W25Q32JVSSIQ come back obsolete and critical. Parts close to the line, where distributor pages lag behind the manufacturer or disagree with each other, can differ between runs; BOMGuard shows that with a lower confidence label and the source behind each verdict, instead of hiding it.
 
 ## How it works
 
@@ -133,7 +139,7 @@ app/research.py   Tavily search wrappers with disk cache
 app/llm.py        Token Factory client, JSON extraction, per-tier usage counters
 app/mock.py       demo-data mode for UI work without keys
 static/           front end (vanilla HTML/CSS/JS)
-samples/          example BOM and a saved live run (example_report.json)
+samples/          sample BOM, saved live run (example_report.json), demo/ exports (KiCad, Eagle, hand-made)
 render.yaml       one-click Render deploy
 ```
 
