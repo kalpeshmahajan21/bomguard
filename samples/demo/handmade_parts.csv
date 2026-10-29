@@ -1,0 +1,6 @@
+Part,How many,Notes
+STM32F407VGT6,1,main MCU
+W25Q64JVSSIQ,1,flash
+CP2102-GMR,1,usb serial
+AMS1117-3.3,2,regulator
+some 0.1uF caps,20,

@@ -36,6 +36,8 @@ def _cite(items: list[dict], sources: list[dict]) -> list[dict]:
     """Keep only claims that point at a real source we retrieved. Uncited claims are dropped."""
     out = []
     for it in items or []:
+        if not isinstance(it, dict):  # skip malformed items from the model
+            continue
         idx = it.get("source_index")
         if isinstance(idx, int) and 0 <= idx < len(sources):
             it = dict(it)
@@ -232,6 +234,8 @@ def verify_claims(items: list[dict], sources: list[dict], fam: str) -> list[dict
     and the quoted text actually appears in the source. Everything else is dropped."""
     out = []
     for it in items or []:
+        if not isinstance(it, dict):  # skip malformed items from the model
+            continue
         idx = it.get("source_index")
         if not (isinstance(idx, int) and 0 <= idx < len(sources)):
             continue
@@ -337,6 +341,15 @@ async def analyze_part(part: dict, usage: llm.Usage, stats: research.TavilyStats
         facts = {"lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
                  "summary": f"Could not extract facts automatically ({_why(e)}). Check sources manually.",
                  "claims": [], "successor": None}
+    # The model occasionally wraps its answer in a list, or returns something else entirely.
+    if isinstance(facts, list) and len(facts) == 1 and isinstance(facts[0], dict):
+        facts = facts[0]
+    if not isinstance(facts, dict):
+        facts = {"lifecycle": "Unknown", "availability": "Unknown", "rohs": "Unknown", "confidence": "low",
+                 "summary": "Could not extract facts automatically (unexpected model output). Check sources manually.",
+                 "claims": [], "successor": None}
+    if not isinstance(facts.get("claims"), list):
+        facts["claims"] = []
 
     for k, allowed in (("lifecycle", LIFECYCLES), ("availability", list(AVAIL_RISK)), ("rohs", ["Compliant", "Non-compliant", "Unknown"])):
         if facts.get(k) not in allowed:
