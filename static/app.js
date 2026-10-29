@@ -66,7 +66,9 @@ $("#file").addEventListener("change", (ev) => { const f = ev.target.files[0]; if
 $("#run-sample").addEventListener("click", () => start({ sample: true }));
 $("#show-example").addEventListener("click", () => showExample({ scroll: true }));
 // The home page always shows the saved report (no API calls). /?example also scrolls straight to it.
-showExample({ scroll: new URLSearchParams(location.search).has("example") });
+// /?fresh opens an empty page (for recording a demo from scratch); otherwise the saved report shows.
+const params = new URLSearchParams(location.search);
+if (!params.has("fresh")) showExample({ scroll: params.has("example") });
 
 // A saved live run, rendered through the same code a live scan uses, so judges see a full report instantly.
 async function showExample({ scroll = false } = {}) {
