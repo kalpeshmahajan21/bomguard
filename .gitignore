@@ -6,3 +6,4 @@ venv/
 .cache/
 CLAUDE.md
 SUBMISSION_DRAFT.md
+*.mp4

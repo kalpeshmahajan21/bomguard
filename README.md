@@ -2,6 +2,8 @@
 
 **Find the dead parts in your bill of materials before your production run does.**
 
+**Demo video:** https://youtu.be/VTbszSwXgOg
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Live demo:** https://bomguard.onrender.com · **[Open the example report instantly](https://bomguard.onrender.com/?example)**
@@ -45,6 +47,16 @@ A real live run on `samples/demo/kicad_export.csv`, an unedited KiCad BOM export
 Click any row to see every claim with its source link, the replacements with what an engineer must check, and every page that was read.
 
 The other demo files show the same behaviour: the Eagle export (semicolon-separated) flags MPU-6050 and HMC5883L as obsolete, and the hand-made part list with no manufacturer column checks out as active. Across every run we have done, MPU-6050, BMP180, HMC5883L and W25Q32JVSSIQ come back obsolete and critical. Parts close to the line, where distributor pages lag behind the manufacturer or disagree with each other, can differ between runs; BOMGuard shows that with a lower confidence label and the source behind each verdict, instead of hiding it.
+
+## Screenshots
+
+**Results page:** BOM health, the "fix these first" briefing, and every part with the verified quote behind its verdict.
+
+![Results page](docs/results.png)
+
+**Part details drawer:** click any part to see its facts, replacements with what an engineer must check, and every source link.
+
+![Part details drawer](docs/drawer.png)
 
 ## How it works
 
