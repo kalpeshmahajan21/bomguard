@@ -14,12 +14,12 @@ Built for the Nebius x NVIDIA Global AI Hackathon (Best Apps and Agents track), 
 
 ![BOMGuard home page](docs/home.png)
 
-> The home page opens on a saved report from a real live run, so judges see the full result instantly and it costs nothing to show. Live scans on the public demo need an access code (ask me, or run it yourself with your own keys, below) and are capped at 30 rows per BOM and 20 scans a day. The free instance sleeps when idle, so the first visit can take about 50 seconds to wake up; a live scan of the sample BOM takes 30–60 seconds.
+> The home page opens on a saved report from a real live run, so judges see the full result instantly and it costs nothing to show. Live scans on the public demo need an access code (it is in the judges' file on the Devpost submission, under Additional info; or run it yourself with your own keys, see "Run it" below) and are capped at 30 rows per BOM and 20 scans a day. The free instance sleeps when idle, so the first visit can take about 50 seconds to wake up; a live scan of the sample BOM takes 30–60 seconds.
 
 ## How to test
 
 1. Open **https://bomguard.onrender.com**. It opens on a saved report from a real live run, so you can explore it straight away (click any part for its sources). The first visit may take about 50 seconds while the free instance wakes up.
-2. To run a live scan, enter the access code **`[ACCESS CODE]`** above the copper button.
+2. To run a live scan, enter the access code. It is in the judges' file on the Devpost submission (Additional info). You can also run it yourself with your own keys, see [Run it](#run-it) below.
 3. Click **Check the sample drone flight-controller BOM**, or drop in one of the files from [`samples/demo/`](samples/demo) (KiCad, Eagle and a hand-made list). A scan takes 20–60 seconds.
 
 ## The problem
@@ -46,7 +46,7 @@ A real live run on `samples/demo/kicad_export.csv`, an unedited KiCad BOM export
 
 Click any row to see every claim with its source link, the replacements with what an engineer must check, and every page that was read.
 
-The other demo files show the same behaviour: the Eagle export (semicolon-separated) flags MPU-6050 and HMC5883L as obsolete, and the hand-made part list with no manufacturer column checks out as active. Across every run we have done, MPU-6050, BMP180, HMC5883L and W25Q32JVSSIQ come back obsolete and critical. Parts close to the line, where distributor pages lag behind the manufacturer or disagree with each other, can differ between runs; BOMGuard shows that with a lower confidence label and the source behind each verdict, instead of hiding it.
+The other demo files show the same behaviour: the Eagle export (semicolon-separated) flags MPU-6050 and HMC5883L as obsolete, and the hand-made part list with no manufacturer column checks out as active. Across every run we have done, MPU-6050, BMP180, HMC5883L and W25Q32JVSSIQ come back obsolete or end of life, each with a quote and its source. Parts close to the line, where distributor pages lag behind the manufacturer or disagree with each other, can differ between runs; BOMGuard shows that with a lower confidence label and the source behind each verdict, instead of hiding it.
 
 ## Screenshots
 
